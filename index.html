@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>こもれびルーム — ローカル試作</title><link rel="stylesheet" href="style.css"></head>
+<body><main><header><span class="eyebrow">KOMOREBI ROOMS / PROTOTYPE</span><a href="?mode=lp">30秒体験版</a></header>
+<section class="intro"><div class="mascot" aria-hidden="true">🐹</div><p class="eyebrow">ひと部屋に、ひとつの居場所。</p><h1>こもれびルーム</h1><p>小さなお部屋を見渡して、<br>ハムスターの落ち着く場所を見つけよう。</p></section>
+<section class="game" aria-label="パズル"><div class="meta"><strong id="stage">準備中</strong><span id="difficulty"></span></div>
+<p class="rules">各行・各列・各番号の部屋に1匹ずつ。<br>となり合うマスには置けません（斜めも含みます）。</p>
+<div class="board-scroll" tabindex="0" aria-label="盤面。大きいお部屋は横にスクロールできます"><div id="board" class="board" aria-label="盤面"></div></div><p id="pan-note" hidden>画面が狭いときは盤面を横に動かせます。</p>
+<fieldset id="modes"><legend>操作を選ぶ → マスを押す</legend><label><input type="radio" name="mode" value="1" checked>置く</label><label><input type="radio" name="mode" value="3">仮置き ?</label><label><input type="radio" name="mode" value="2">除外 ×</label><label><input type="radio" name="mode" value="0">消す</label></fieldset>
+<div class="actions"><button id="undo">ひとつ戻す</button><button id="hint">考え方のヒント</button></div><p id="status" role="status" aria-live="polite">盤面を準備しています。</p><button id="next" hidden>次のお部屋へ →</button><a id="cta" class="cta" href="./" hidden>続けて遊ぶ（ローカル試作）</a></section>
+<details><summary>操作と試作について</summary><p>1回押すと選択、同じマスをもう一度押すと確定します。キーボードはTabとEnter。仮置きはクリア判定に入りません。ヒントは除外メモを前提にせず、配置済みのハムスターから説明します。点はヒントで除外した候補です。</p><p>保存はこのブラウザー内のみ。広告・通信型解析・課金はありません。30局の難度目標を上げ、その後は熟練帯の別配置になります。難度スコアは実験値で、体感の難しさは調整中です。</p></details>
+<footer>静かなひと息を、ひと部屋ずつ。<br>独立制作の検証版 · ストア未公開</footer></main><script type="module" src="app.js"></script></body></html>
