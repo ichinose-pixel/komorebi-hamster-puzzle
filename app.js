@@ -1,11 +1,13 @@
-import {fresh,mark,undo,won,restore,solve} from './core.js?v=6f2c880a7f5a5064';
-import {analyze} from './deduction.js?v=6f2c880a7f5a5064';
-import {fallbackFor,signature} from './progression.js?v=6f2c880a7f5a5064';
-import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene} from './art.js?v=6f2c880a7f5a5064';
+import {createAudio} from './audio.js?v=c86e97018b9ae3d6';
+import {fresh,mark,undo,won,restore,solve} from './core.js?v=c86e97018b9ae3d6';
+import {analyze} from './deduction.js?v=c86e97018b9ae3d6';
+import {fallbackFor,signature} from './progression.js?v=c86e97018b9ae3d6';
+import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene} from './art.js?v=c86e97018b9ae3d6';
 const $=id=>document.getElementById(id),lp=new URLSearchParams(location.search).get('mode')==='lp';
 const key=lp?'komorebi-lp-v1':'komorebi-v1',tutorialKey='komorebi-tutorial-v3',collectionKey=key+'-collection-v3';
+const audio=createAudio(key);
 const palette=['#F4D58F','#A5D9BE','#C9B9E3','#ADD8E5','#F3B7AA','#D4DFA2','#B5C5ED','#EBD0B2'];
-const catalog=await fetch('./catalog.json?v=6f2c880a7f5a5064').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
+const catalog=await fetch('./catalog.json?v=c86e97018b9ae3d6').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
 let rewardTimer=null,rewardId='',inGame=lp;
 let g,busy=false,recent=[],hinted=[],premise=[],excluded=new Set(),hintCursor=0,errorCell=-1,winFor='',storageOk=true,worker=null,lpTimer=null;
 let tut={version:1,index:0,ack:false,final:[],done:false},collection={version:1,completed:[]};
@@ -17,12 +19,12 @@ function persist(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{stora
 function save(){if(g)persist(key,g);persist(key+'-recent',recent.slice(-50));persist(tutorialKey,tut);persist(collectionKey,collection);}
 function message(text){$('status').textContent=text+(!storageOk?' この環境では保存できません。':'');}
 function resetHint(){hinted=[];premise=[];excluded.clear();hintCursor=0;errorCell=-1;}
-function sound(win=false){if(!$('sound').checked||matchMedia('(prefers-reduced-motion: reduce)').matches)return;try{const Audio=window.AudioContext||window.webkitAudioContext;const ctx=new Audio();[0,...(win?[.12,.24]:[])].forEach((delay,k)=>{const o=ctx.createOscillator(),gain=ctx.createGain();o.type='sine';o.frequency.value=win?[523,659,784][k]:440;gain.gain.setValueAtTime(0,ctx.currentTime+delay);gain.gain.linearRampToValueAtTime(.035,ctx.currentTime+delay+.01);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+delay+.15);o.connect(gain);gain.connect(ctx.destination);o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+.2);});setTimeout(()=>ctx.close(),700);}catch{}}
+function sound(kind=false){audio.effect(kind===true?'open':typeof kind==='string'?kind:'place');}
 function conflictReason(b,p,i){for(const j of p){if(i===j)continue;if(Math.floor(i/b.n)===Math.floor(j/b.n))return 'この横の列には、もう1匹います。別の行に置いてみよう。';if(i%b.n===j%b.n)return 'この縦の列には、もう1匹います。別の列に置いてみよう。';if(b.regions[i]===b.regions[j])return `おへや ${b.regions[i]+1} は、もう満員。同じ番号のおへやには1匹です。`;if(Math.abs(Math.floor(i/b.n)-Math.floor(j/b.n))<=1&&Math.abs(i%b.n-j%b.n)<=1)return 'となりには近すぎるみたい。ななめも、ひとマスあけよう。';}return '';}
 const roomBoard={n:5,regions:[0,0,0,0,0,1,1,2,2,0,1,1,2,2,0,3,3,3,4,4,3,3,4,4,4]},lineBoard={n:5,regions:[0,0,1,1,1,0,0,1,1,1,2,2,3,3,3,2,2,3,4,4,2,2,3,4,4]};
 const finalBoard=catalog.stages[0].entries[0].board,finalSolution=solve(finalBoard)[0],finalFixed=finalSolution.slice(0,3);
 const lessons=[
- {title:'まずは、おへやに1匹',caption:'枠のマスをタップ',board:roomBoard,fixed:[],target:0,text:'同じ色と番号は、ひとつのおへや。枠のマスに置いてみよう。',after:'ぴったり。このおへやには、1匹だけ住めます。'},
+ {title:'まずは、おへやに1匹',caption:'枠のマスをタップ',board:roomBoard,fixed:[],target:0,text:'同じ色と番号は、ひとつのおへや。枠のマスに置いてみよう。',after:'ぴったり。本番では、置いたハムをもう一度タップすると戻せます。'},
  {title:'ひと部屋に、ひとり',caption:'同じおへやに、もう1匹？',board:roomBoard,fixed:[0],target:14,text:'離れていても同じ番号は同じおへや。枠のマスにもう1匹置けるかな？',after:'ここは同じおへやなので置けません。色だけでなく、番号でも見分けられます。'},
  {title:'よこに並べない',caption:'別のおへやでも、同じ行',board:lineBoard,fixed:[0],target:4,text:'今度は別のおへや。でも、横一列にもう1匹います。枠をタップしてみよう。',after:'同じ横の行には1匹だけ。別のおへやでも横には並べません。'},
  {title:'たてにも並べない',caption:'縦の列も、1匹だけ',board:lineBoard,fixed:[0],target:20,text:'縦の列にも同じルールがあります。枠のマスを試してみよう。',after:'同じ縦の列にも1匹だけ。たて・よこ、両方を見てみよう。'},
@@ -41,12 +43,13 @@ function drawBoard(b,marks,tutorial=false){
   else if(v===2||excluded.has(i)&&!tutorial){const x=document.createElement('span');x.className='mark';x.textContent=v===2?'×':'·';button.append(x);}
   if(hinted.includes(i)&&!tutorial)button.classList.add('hinted');if(premise.includes(i)&&!tutorial)button.classList.add('premise');if(excluded.has(i)&&!tutorial)button.classList.add('excluded');if(errorCell===i)button.classList.add('error');
   if(tutorial){const l=lessons[tut.index];if(!tut.ack&&l.target===i)button.classList.add('target');if((tut.index===2&&Math.floor(i/b.n)===0)||(tut.index===3&&i%b.n===0)||(tut.index===4&&Math.abs(Math.floor(i/b.n)-1)<=1&&Math.abs(i%b.n-1)<=1))button.classList.add('line-guide');}
-  button.onclick=()=>tutorial?tutorialTap(i):playTap(i);$('board').append(button);
+  button.onclick=e=>{if(tutorial)tutorialTap(i);else if(e.detail===0)playTap(i);};$('board').append(button);
  });if(focus>=0)$('board').children[focus]?.focus({preventScroll:true});
 }
 function render(){
+ audio.setScene(inGame&&tut.done&&!!g&&!won(g));
  const tutorial=!tut.done;document.querySelector('.app').classList.toggle('tutorial',tutorial);$('modes').hidden=tutorial;$('game-actions').hidden=tutorial;$('tutorial-actions').hidden=!tutorial;$('tutorial-progress').hidden=!tutorial;
- $('collection-count').textContent=collection.completed.length;
+ $('collection-count').textContent=collection.completed.length;$('swipe-demo').hidden=!tutorial||tut.index!==5;
  if(tutorial){const l=lessons[tut.index];$('chapter').textContent='さわって覚える · はじめの一歩';$('stage').textContent=l.title;$('board-caption').textContent=l.caption;$('placed').textContent=`${tut.index+1} / ${lessons.length}`;drawBoard(l.board,tutorialMarks(),true);$('tutorial-progress').innerHTML=lessons.map((_,i)=>`<i class="${i<tut.index?'done':i===tut.index?'active':''}"></i>`).join('');$('tutorial-next').disabled=!tut.ack;$('tutorial-next').textContent=tut.index===5?'おへや探しをはじめる':'わかった、次へ';message(tut.ack?l.after:l.text);$('cta').hidden=true;return;}
  if(!g)return;
  $('cta').hidden=!lp||!document.querySelector('.app').classList.contains('lp-offer');
@@ -56,44 +59,51 @@ function render(){
 }
 function tutorialTap(i){
  const l=lessons[tut.index];if(tut.ack)return;
- if(tut.index===5){if(l.fixed.includes(i)||tut.final.includes(i)){message('その子は、もう居場所が決まっています。空いているマスを探そう。');return;}const p=[...l.fixed,...tut.final],reason=conflictReason(l.board,p,i);if(reason||!finalSolution.includes(i)){errorCell=i;render();message(reason||'その場所だと、残りの子が入れません。おへやの番号も見てみよう。');return;}tut.final.push(i);sound();if(tut.final.length===2)tut.ack=true;}
+ if(tut.index===5){if(tut.final.includes(i)){tut.final=tut.final.filter(x=>x!==i);save();render();message('置いたハムを戻しました。もう一度置いてみよう。');return;}if(l.fixed.includes(i)){message('その子は、もう居場所が決まっています。空いているマスを探そう。');return;}const p=[...l.fixed,...tut.final],reason=conflictReason(l.board,p,i);if(reason||!finalSolution.includes(i)){errorCell=i;render();message(reason||'その場所だと、残りの子が入れません。おへやの番号も見てみよう。');return;}tut.final.push(i);sound();if(tut.final.length===2)tut.ack=true;}
  else if(i!==l.target){errorCell=i;render();message('まずは、枠と小さな丸がついたマスを試してみよう。');return;}
  else{tut.ack=true;if(tut.index!==0)errorCell=i;else sound();}
  save();render();
 }
-function playTap(i){if(busy||won(g))return;const value=Number(document.querySelector('input[name=mode]:checked').value);if(g.marks[i]===value)return;
+function playTap(i){if(busy||won(g))return;let value=Number(document.querySelector('input[name=mode]:checked').value);if(g.marks[i]===2||(value===1&&g.marks[i]===1))value=0;else if(g.marks[i]===value)return;
  if(value===1){const p=g.marks.flatMap((v,j)=>v===1&&i!==j?[j]:[]),reason=conflictReason(g.board,p,i);if(reason){errorCell=i;render();message(reason+' 仮置きなら考えをメモできます。');return;}}
- g=mark(g,i,value);resetHint();save();render();if(value===1)sound();if(won(g))complete();else message(value===3?'仮置きは考えのメモ。確かになったら「置く」で決めよう。':value===2?'ここには置かない、とメモしました。':'いい感じ。次の居場所も探してみよう。');}
+ g=mark(g,i,value);resetHint();save();render();if(value===1)sound();else if(value===0)sound('remove');if(won(g))complete();else message(value===0?'マスを空きに戻しました。「置く・戻す」でタップするとハムを置けます。':value===3?'仮置きは考えのメモ。確かになったら「置く」で決めよう。':value===2?'ここには置かない、とメモしました。':'いい感じ。次の居場所も探してみよう。');}
 async function start(stage){if(busy)return;busy=true;message('次のおへやを準備中…');if(g)render();const seed=crypto.getRandomValues(new Uint32Array(1))[0];
- const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=6f2c880a7f5a5064',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
+ const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=c86e97018b9ae3d6',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
  const chosen=result||fallbackFor(seed,stage,catalog,recent);g=fresh(chosen.board,seed,stage);g.generatorVersion=2;recent.push(signature(g.board));busy=false;winFor='';resetHint();save();render();if(tut.done)message(stage>30?'ここからは熟練コース。同じ難しさの、新しい居場所探し。':'まずは、小さいおへやの候補を見てみよう。');}
 function collectionInfo(){const count=collection.completed.length,unlocked=Math.min(12,count);return {count,unlocked};}
-function revealReward(){clearTimeout(rewardTimer);rewardTimer=null;$('reward-stage').classList.add('revealed');$('skip-reward').hidden=true;$('reward-details').hidden=false;collection.revealed=rewardId;save();if($('celebration').open)$('view-room').focus({preventScroll:true});}
+function nextLabel(){return lp?'本編でつづける':`ステージ${g.stage+1}へ`;}
+function installReward(){clearTimeout(rewardTimer);rewardTimer=null;$('reward-stage').classList.add('installed');}
+function revealReward(skip=false){clearTimeout(rewardTimer);rewardTimer=null;$('reward-stage').classList.add('revealed');$('skip-reward').hidden=true;$('reward-details').hidden=false;collection.revealed=rewardId;save();if(!skip)sound(true);if($('celebration').open)$('next').focus({preventScroll:true});if(skip||matchMedia('(prefers-reduced-motion: reduce)').matches)installReward();else rewardTimer=setTimeout(installReward,1150);}
+async function advanceStage(){if(busy)return;document.querySelectorAll('dialog[open]').forEach(d=>d.close());if(g&&won(g)){if(lp){location.href='./';return;}inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(g.stage+1);}else enterGame();}
 function complete(){
- const id=`${g.stage}:${g.seed}`;if(!collection.completed.includes(id)){collection.completed.push(id);save();}if(winFor===id)return;winFor=id;rewardId=id;sound(true);render();message('みんなの居場所が決まりました。おうち便が届いたよ！');
+ const id=`${g.stage}:${g.seed}`;if(!collection.completed.includes(id)){collection.completed.push(id);save();}if(winFor===id)return;winFor=id;rewardId=id;audio.capsule();render();message('みんなの居場所が決まりました。おうち便が届いたよ！');
  const index=collection.completed.indexOf(id),item=furniture[index%12],isNew=index<12;
  $('win-title').textContent='おうち便、到着！';$('win-copy').textContent=`おへや ${g.stage} クリア！ ハムからのお礼です。`;
  $('reward-title').textContent=isNew?item.name:('ハムの思い出 #'+(index-11));$('reward-copy').textContent='「'+item.note+'」';$('gift-label').textContent=isNew?'新しい家具':'ハムの思い出';
  $('reward-object').innerHTML=isNew?furnitureArt(index):'<div class="memory-card">'+hamster(true,index%2?'white':'gold')+'</div>';
- $('capsule-art').innerHTML=capsule();$('reward-ham').innerHTML=hamster(true);$('win-room').innerHTML=roomScene(collectionInfo().unlocked,true);
- $('next').textContent=lp?'つづけて遊ぶ':'次のパズルへ';$('reward-stage').classList.remove('revealed');$('reward-details').hidden=true;$('skip-reward').hidden=false;
+ $('capsule-art').innerHTML=capsule();$('reward-ham').innerHTML=hamster(true);$('win-room').innerHTML=roomScene(collectionInfo().unlocked,true);$('reward-home').innerHTML=roomScene(collectionInfo().unlocked,true);
+ $('next').textContent=nextLabel();$('reward-stage').classList.remove('revealed','installed');$('reward-details').hidden=true;$('skip-reward').hidden=false;
  if(!$('celebration').open)$('celebration').showModal();clearTimeout(rewardTimer);
- if(collection.revealed===id||matchMedia('(prefers-reduced-motion: reduce)').matches)revealReward();else rewardTimer=setTimeout(revealReward,2000);
+ if(collection.revealed===id||matchMedia('(prefers-reduced-motion: reduce)').matches)revealReward(true);else rewardTimer=setTimeout(()=>revealReward(false),1450);
 }
-function showCollection(){const c=collectionInfo();$('collection-room').innerHTML=roomScene(c.unlocked,true);$('collection-description').textContent=`家具 ${c.unlocked} / 12 ・ クリア ${c.count} 回${c.unlocked===12?'。このお家の家具は完成！ パズルはこの先も続きます。':''}`;$('collection-items').innerHTML=furniture.map((item,i)=>`<div class="collectible ${i<c.unlocked?'unlocked':''}">${i<c.unlocked?furnitureArt(i):'<span class="locked-gift">?</span>'}<strong>${i<c.unlocked?item.name:'おたのしみ'}</strong><small>${i<c.unlocked?item.note:(i+1)+'回クリアで届く'}</small></div>`).join('');const index=Math.max(0,c.count-1);$('home-story').hidden=true;$('home-story-title').textContent=episodes[index%4].title;$('home-story-art').innerHTML=episodeScene(index);$('home-story-art').setAttribute('aria-label',episodes[index%4].description);$('collection-dialog').showModal();}
-function showTitle(){save();document.querySelectorAll('dialog[open]').forEach(d=>d.close());inGame=false;$('title-screen').hidden=false;document.querySelector('.app').hidden=true;clearTimeout(lpTimer);lpTimer=null;updateTitle();$('title-play').focus();}
-function updateTitle(){$('title-play').disabled=!g||busy;$('title-play').textContent=g&&(g.stage>1||g.marks.some(Boolean)||tut.done)?'つづきから':'はじめる';}
+function showCollection(){const c=collectionInfo();$('collection-room').innerHTML=roomScene(c.unlocked,true);$('collection-description').textContent=`家具 ${c.unlocked} / 12 ・ クリア ${c.count} 回${c.unlocked===12?'。このお家の家具は完成！ パズルはこの先も続きます。':''}`;$('collection-items').innerHTML=furniture.map((item,i)=>`<div class="collectible ${i<c.unlocked?'unlocked':''}">${i<c.unlocked?furnitureArt(i):'<span class="locked-gift">?</span>'}<strong>${i<c.unlocked?item.name:'おたのしみ'}</strong><small>${i<c.unlocked?item.note:(i+1)+'回クリアで届く'}</small></div>`).join('');const index=Math.max(0,c.count-1);$('home-story').hidden=true;$('home-story-title').textContent=episodes[index%4].title;$('home-story-art').innerHTML=episodeScene(index);$('home-story-art').setAttribute('aria-label',episodes[index%4].description);$('house-next').textContent=g&&won(g)?nextLabel():'パズルへ';$('collection-dialog').showModal();}
+function showTitle(){save();document.querySelectorAll('dialog[open]').forEach(d=>d.close());inGame=false;audio.setScene(false);$('title-screen').hidden=false;document.querySelector('.app').hidden=true;clearTimeout(lpTimer);lpTimer=null;updateTitle();$('title-play').focus();}
+function hasProgress(){return !!g&&(g.stage>1||g.marks.some(Boolean)||g.history.length>0||tut.done||tut.index>0||tut.ack);}
+function updateTitle(){const progress=hasProgress();$('title-play').disabled=!g||busy;$('title-play').textContent=progress?'つづきから':'はじめる';$('title-restart').hidden=!progress;$('title-restart').disabled=busy;}
 function enterGame(){if(!g||busy)return;inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;render();beginLp();if(tut.done&&won(g)){winFor='';complete();}else $('help').focus({preventScroll:true});}
 function beginLp(){if(lp&&inGame&&tut.done&&lpTimer===null)lpTimer=setTimeout(()=>{$('cta').hidden=false;document.querySelector('.app').classList.add('lp-offer');},30000);}
 function finishTutorial(){tut.done=true;save();resetHint();render();beginLp();message('準備できました。自分のペースで最初のおへやをつくろう。');if(g&&won(g)){winFor='';complete();}}
 $('tutorial-next').onclick=()=>{if(!tut.ack)return;if(tut.index===5){finishTutorial();return;}tut.index++;tut.ack=false;tut.final=[];errorCell=-1;save();render();};$('skip').onclick=finishTutorial;
 $('replay').onclick=()=>{$('help-dialog').close();inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;tut={version:1,index:0,ack:false,final:[],done:false};save();resetHint();render();};
 $('undo').onclick=()=>{if(busy)return;g=undo(g);winFor='';resetHint();save();render();message('ひとつ前に戻しました。ゆっくり考えて大丈夫。');};
-$('hint').onclick=()=>{const placed=g.marks.flatMap((v,i)=>v===1?[i]:[]);if(!solve(g.board,placed,1).length){message('今の置き方では全員が入れません。「戻す」や「仮置き」で見直してみよう。');return;}const step=analyze(g.board,placed).steps[hintCursor];if(!step){message('いったん戻して、おへやごとの候補を見直してみよう。');return;}premise=step.premise;hinted=step.place!==undefined?[step.place]:step.remove;if(step.place===undefined){step.remove.forEach(i=>excluded.add(i));hintCursor++;}render();message(step.reason+(step.place===undefined?' 点のマスは除外。ヒントでもう一歩。':' 枠のマスに置いてみよう。'));};
-$('next').onclick=()=>{if(busy)return;$('celebration').close();if(lp){location.href='./';return;}start(g.stage+1);};$('close-win').onclick=()=>{$('celebration').close();};$('celebration').addEventListener('close',()=>{clearTimeout(rewardTimer);rewardTimer=null;});$('skip-reward').onclick=revealReward;$('view-room').onclick=()=>{$('celebration').close();if(collection.completed.length===2)showStory();else showCollection();};
+$('hint').onclick=()=>{if(busy||!g)return;const placed=g.marks.flatMap((v,i)=>v===1?[i]:[]);if(!solve(g.board,placed,1).length){message('今の置き方では全員が入れません。「戻す」や「仮置き」で見直してみよう。');return;}const step=analyze(g.board,placed).steps[hintCursor];if(!step){message('いったん戻して、おへやごとの候補を見直してみよう。');return;}premise=step.premise;hinted=step.place!==undefined?[step.place]:step.remove;if(step.place===undefined){step.remove.forEach(i=>excluded.add(i));hintCursor++;}render();message(step.reason+(step.place===undefined?' 点のマスは除外。ヒントでもう一歩。':' 枠のマスに置いてみよう。'));};
+$('next').onclick=advanceStage;$('house-next').onclick=advanceStage;$('close-win').onclick=()=>{$('celebration').close();};$('celebration').addEventListener('close',()=>{clearTimeout(rewardTimer);rewardTimer=null;});$('skip-reward').onclick=()=>revealReward(true);$('view-room').onclick=()=>{$('celebration').close();if(collection.completed.length===2)showStory();else showCollection();};
 $('help').onclick=()=>$('help-dialog').showModal();$('learn-tab').onclick=()=>$('help-dialog').showModal();$('collection-tab').onclick=showCollection;$('play-tab').onclick=()=>{if(tut.done&&g&&won(g)){winFor='';complete();}};
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
-$('sound').checked=read(key+'-sound')===true;$('title-sound').checked=$('sound').checked;$('sound').onchange=()=>{$('title-sound').checked=$('sound').checked;persist(key+'-sound',$('sound').checked);sound();};$('title-sound').onchange=()=>{$('sound').checked=$('title-sound').checked;persist(key+'-sound',$('sound').checked);sound();};
+function syncAudio(){for(const name of ['bgm','se']){$(name+'-volume').value=Math.round(audio.settings[name]*100);$(name+'-value').textContent=Math.round(audio.settings[name]*100)+'%';}const on=audio.settings.bgm>0||audio.settings.se>0;$('sound').checked=on;$('title-sound').checked=on;}
+for(const name of ['bgm','se'])$(name+'-volume').oninput=()=>{audio.set(name,Number($(name+'-volume').value)/100);syncAudio();};
+function masterSound(on){audio.set('bgm',on?.22:0);audio.set('se',on?.45:0);syncAudio();if(on)sound();}
+$('sound').onchange=()=>masterSound($('sound').checked);$('title-sound').onchange=()=>masterSound($('title-sound').checked);syncAudio();
 document.querySelector('.brand-mark').innerHTML=hamster();$('guide-art').innerHTML=hamster();document.querySelector('.hamster-symbol').innerHTML=hamster();$('seed-icon').innerHTML=icon('seed');$('reward-art').innerHTML=icon('seed');$('help').innerHTML=icon('help');$('close-win').innerHTML=icon('close');document.querySelectorAll('[data-close].icon-button').forEach(b=>b.innerHTML=icon('close'));$('undo').innerHTML=icon('undo')+'戻す';$('hint').innerHTML=icon('hint')+'ヒント';$('play-tab').innerHTML=icon('home')+'あそぶ';$('collection-tab').innerHTML=icon('seed')+'おへや';$('learn-tab').innerHTML=icon('book')+'あそびかた';
 try{g=restore(localStorage.getItem(key)||'');const r=read(key+'-recent');if(Array.isArray(r))recent=r.filter(x=>typeof x==='string').slice(-50);}catch{}
 if(g){render();if(tut.done)message(won(g)?'完成済みのおへやです。「あそぶ」から次へ進めます。':'おかえりなさい。前回の続きから遊べます。');}else await start(1);
@@ -104,6 +114,19 @@ if(lp){$('mode-link').href='./';$('mode-link').textContent='通常モードへ';
 $('title-art').innerHTML=titleScene();$('title-play').onclick=enterGame;$('title-home').onclick=showTitle;$('title-help').onclick=()=>$('help-dialog').showModal();$('title-collection').onclick=showCollection;updateTitle();if(lp){$('title-screen').hidden=true;document.querySelector('.app').hidden=false;}
 
 let storyBeat=0;
-function renderStory(){ $('story-stage').innerHTML=snackScene(storyBeat,matchMedia('(prefers-reduced-motion: reduce)').matches);$('story-stage').setAttribute('aria-label',['主人公がおやつの籠を運び、白いハムスターが少しためらいながら待っている','主人公が小さなお皿を差し出し、友だちが手を伸ばす','友だちは喜んで食べる。主人公は自分の大きなお皿へちらりと目を向ける'][storyBeat]);$('story-progress').textContent=(storyBeat+1)+' / 3';$('story-next').textContent=storyBeat===2?'おうちへ':'つづき';$('story-back').disabled=storyBeat===0;}
+function renderStory(){ $('story-skip').hidden=storyBeat===2; $('story-stage').innerHTML=snackScene(storyBeat,matchMedia('(prefers-reduced-motion: reduce)').matches);$('story-stage').setAttribute('aria-label',['主人公がおやつの籠を運び、白いハムスターが少しためらいながら待っている','主人公が小さなお皿を差し出し、友だちが手を伸ばす','友だちは喜んで食べる。主人公は自分の大きなお皿へちらりと目を向ける'][storyBeat]);$('story-progress').textContent=(storyBeat+1)+' / 3';$('story-next').textContent=storyBeat===2?(g&&won(g)?nextLabel():'パズルへ'):'つづき';$('story-skip').textContent=g&&won(g)?'お話をスキップして'+nextLabel():'お話を閉じる';$('story-back').disabled=storyBeat===0;}
 function showStory(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());storyBeat=0;renderStory();$('story-dialog').showModal();}
-$('open-story').onclick=showStory;$('story-next').onclick=()=>{if(storyBeat===2){$('story-dialog').close();showCollection();}else{storyBeat++;renderStory();}};$('story-back').onclick=()=>{if(storyBeat>0){storyBeat--;renderStory();}};
+$('open-story').onclick=showStory;$('story-next').onclick=()=>{if(storyBeat===2){advanceStage();}else{storyBeat++;renderStory();}};$('story-back').onclick=()=>{if(storyBeat>0){storyBeat--;renderStory();}};
+
+$('story-skip').onclick=()=>{if(g&&won(g))advanceStage();else{$('story-dialog').close();showCollection();}};
+$('title-restart').onclick=()=>{if(!busy)$('restart-dialog').showModal();};$('restart-cancel').onclick=()=>$('restart-dialog').close();
+$('restart-confirm').onclick=async()=>{if(busy)return;$('restart-dialog').close();document.querySelectorAll('dialog[open]').forEach(d=>d.close());tut={version:1,index:0,ack:false,final:[],done:false};recent=[];g=null;winFor='';document.querySelector('input[name=mode][value="1"]').checked=true;inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(1);updateTitle();};
+
+let gesture=null;
+const boardElement=$('board');
+function cancelGesture(){if(!gesture)return;gesture=null;render();}
+boardElement.addEventListener('pointerdown',e=>{if(!tut.done||busy||!g||won(g)||!e.isPrimary||e.button!==0)return;const cell=e.target.closest('.cell');if(!cell)return;const i=Number(cell.dataset.cell);gesture={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,start:i,drag:false,marks:[...g.marks],seen:new Set(),value:g.marks[i]===2?0:2};boardElement.setPointerCapture(e.pointerId);});
+function swipeCell(x,y){const el=document.elementFromPoint(x,y)?.closest('.cell');if(!el||el.parentElement!==boardElement)return;const i=Number(el.dataset.cell);if(gesture.seen.has(i))return;gesture.seen.add(i);if(g.marks[i]!==0&&g.marks[i]!==2)return;gesture.marks[i]=gesture.value;}
+boardElement.addEventListener('pointermove',e=>{if(!gesture||gesture.id!==e.pointerId)return;if(!gesture.drag&&Math.hypot(e.clientX-gesture.x,e.clientY-gesture.y)<9)return;gesture.drag=true;const dx=e.clientX-gesture.lastX,dy=e.clientY-gesture.lastY,steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/7));for(let k=0;k<=steps;k++)swipeCell(gesture.lastX+dx*k/steps,gesture.lastY+dy*k/steps);gesture.lastX=e.clientX;gesture.lastY=e.clientY;drawBoard(g.board,gesture.marks);});
+boardElement.addEventListener('pointerup',e=>{if(!gesture||gesture.id!==e.pointerId)return;const done=gesture;gesture=null;if(boardElement.hasPointerCapture(e.pointerId))boardElement.releasePointerCapture(e.pointerId);if(!done.drag){playTap(done.start);return;}if(done.marks.some((v,i)=>v!==g.marks[i])){g={...g,marks:done.marks,history:[...g.history.slice(-99),g.marks]};resetHint();save();}render();message(done.value===2?'なぞったマスを除外しました。戻すで、ひとなぞり分を取り消せます。':'なぞった除外マークを解除しました。');});
+boardElement.addEventListener('pointercancel',cancelGesture);boardElement.addEventListener('lostpointercapture',cancelGesture);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelGesture();});
