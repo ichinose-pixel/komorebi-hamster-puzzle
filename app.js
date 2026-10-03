@@ -1,10 +1,10 @@
-import {tapController} from './interaction.js?v=e2113a351a36a2c8';
-import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=e2113a351a36a2c8';
-import {createAudio} from './audio.js?v=e2113a351a36a2c8';
-import {fresh,mark,undo,won,restore,solve} from './core.js?v=e2113a351a36a2c8';
-import {analyze} from './deduction.js?v=e2113a351a36a2c8';
-import {fallbackFor,signature} from './progression.js?v=e2113a351a36a2c8';
-import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=e2113a351a36a2c8';
+import {tapController} from './interaction.js?v=c3900dbc6a2c3c88';
+import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=c3900dbc6a2c3c88';
+import {createAudio} from './audio.js?v=c3900dbc6a2c3c88';
+import {fresh,mark,undo,won,restore,solve} from './core.js?v=c3900dbc6a2c3c88';
+import {analyze} from './deduction.js?v=c3900dbc6a2c3c88';
+import {fallbackFor,signature} from './progression.js?v=c3900dbc6a2c3c88';
+import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=c3900dbc6a2c3c88';
 const $=id=>document.getElementById(id),lp=new URLSearchParams(location.search).get('mode')==='lp';
 const key=lp?'komorebi-lp-v1':'komorebi-v1',tutorialKey='komorebi-tutorial-v3',collectionKey=key+'-collection-v3';
 const audio=createAudio(key);
@@ -16,7 +16,7 @@ $('sound').onchange=()=>masterSound($('sound').checked);$('title-sound').onchang
 audio.subscribe(status=>{const retry=['blocked','paused'].includes(status),copy={off:'音はオフです',waiting:'最初の操作で音が始まります',starting:'音を開始しています…',playing:'音を再生中',paused:'音が中断されました',blocked:'音を開始できませんでした。再開を押してください',unsupported:'この環境では音声を再生できません'}[status];$('audio-status').textContent=copy;$('title-audio-status').textContent=copy;$('audio-resume').hidden=!retry;$('title-audio-resume').hidden=!retry;});syncAudio();
 
 const palette=['#F4D58F','#A5D9BE','#C9B9E3','#ADD8E5','#F3B7AA','#D4DFA2','#B5C5ED','#EBD0B2'];
-const catalog=await fetch('./catalog.json?v=e2113a351a36a2c8').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
+const catalog=await fetch('./catalog.json?v=c3900dbc6a2c3c88').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
 let rewardTimer=null,rewardId='',inGame=lp,input=null,hintPhase=0,hintStep=null,hintContext=[];
 let g,busy=false,recent=[],hinted=[],premise=[],excluded=new Set(),hintCursor=0,errorCell=-1,winFor='',storageOk=true,worker=null,lpTimer=null;
 let tut={version:1,index:0,ack:false,final:[],done:false},collection={version:1,completed:[]};
@@ -81,7 +81,7 @@ function playTap(i,action='double'){
  g=mark(g,i,value);resetHint();save();render();sound(value===1?'place':value===0?'remove':'mark');if(won(g))complete();else message(value===0?'マークを消しました。空きマスは2回タップでハム、1回で除外。':value===3?'仮置きメモです。タップで消してから、通常操作で置き直せます。':value===2?'ここは除外。もう1回タップ、またはここからなぞると解除。':'いい居場所だね。ぼくの席は広めにね。');
 }
 async function start(stage){if(busy)return;input?.reset();busy=true;message('次のおへやを準備中…');if(g)render();const seed=crypto.getRandomValues(new Uint32Array(1))[0];
- const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=e2113a351a36a2c8',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
+ const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=c3900dbc6a2c3c88',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
  const chosen=result||fallbackFor(seed,stage,catalog,recent);g=fresh(chosen.board,seed,stage);g.hintsUsed=0;g.generatorVersion=2;recent.push(signature(g.board));busy=false;winFor='';resetHint();save();render();if(tut.done)message(stage>60?'ここからは延長戦。難しさの上限は同じ、新しい盤面です。':'まずは、小さいおへやの候補を見てみよう。');}
 function collectionInfo(){return {count:collection.completed.length,unlocked:roomCount(collection)};}
 function nextLabel(){return lp?'本編でつづける':`ステージ${g.stage+1}へ`;}
@@ -92,8 +92,8 @@ function installReward(){setShowPhase('photo');}
 function revealReward(skip=false){clearShow();setShowPhase('photo');if($('celebration').open)$('next').focus({preventScroll:true});}
 function playShow(special){
  clearShow();document.querySelector('.app').classList.add('clear-wave');setShowPhase('preview');audio.effect('announce');
- const phases=special?[[650,'rise','rise1'],[1650,'climb1','rise1'],[2050,'climb2','rise2'],[2450,'climb3','rise3'],[2850,'hold','quiet'],[3150,'burst','open'],[4250,'pose','pose'],[5600,'photo','mark']]:[[400,'rise','rise1'],[1050,'climb1','rise1'],[1350,'climb2','rise2'],[1650,'climb3','rise3'],[1950,'hold','quiet'],[2200,'burst','open'],[3100,'pose','pose'],[4100,'photo','mark']];
- for(const [ms,phase,sound] of phases)showTimers.push(setTimeout(()=>{setShowPhase(phase);if(sound==='quiet')audio.cancelCelebration();else audio.effect(sound);},ms));
+ const phases=special?[[350,'rise','rise1'],[1150,'climb1','rise1'],[1800,'climb2','rise2'],[2450,'climb3','quiet'],[3300,'hold','quiet'],[4300,'burst','crown'],[5100,'pose','pose'],[6200,'photo','mark']]:[[200,'rise','rise1'],[650,'climb1','rise1'],[1100,'climb2','rise2'],[1450,'climb3','quiet'],[1750,'hold','quiet'],[2000,'burst','open'],[2500,'pose','pose'],[3300,'photo','mark']];
+ for(const [ms,phase,sound] of phases)showTimers.push(setTimeout(()=>{setShowPhase(phase);if(sound==='quiet')audio.cancelCelebration();else if(sound==='crown')showTimers.push(setTimeout(()=>audio.effect('open'),390));else audio.effect(sound);},ms));
 }
 
 async function advanceStage(){if(busy)return;input?.reset();clearShow();document.querySelectorAll('dialog[open]').forEach(d=>d.close());if(g&&won(g)){if(lp){location.href='./';return;}inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(g.stage+1);}else enterGame();}

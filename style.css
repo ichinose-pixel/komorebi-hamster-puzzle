@@ -82,3 +82,78 @@ dialog{border:2px solid #343B52;background:#FFF9ED;box-shadow:0 7px 0 #343B5250,
 #celebration.win-show .reward-confetti{display:none}.show-ribbon{position:absolute;top:8dvh;left:2vw;right:2vw;height:74px;background:linear-gradient(175deg,#754A75,#34243E 45%,#23172E);border-top:2px solid #FFF0B0;border-bottom:4px solid #C7904B;box-shadow:0 5px 0 #C2549344;clip-path:polygon(0 10%,4% 50%,0 90%,100% 90%,96% 50%,100% 10%);opacity:0;transform:scaleX(.3);z-index:3;transition:transform .3s cubic-bezier(.2,.8,.3,1.15),opacity .2s}.win-show[data-phase="pose"] .show-ribbon,.win-show[data-phase="photo"] .show-ribbon{opacity:1;transform:none}#celebration.win-show>#win-title{color:#FFD975;-webkit-text-stroke:.65px #FFF2BB;paint-order:stroke fill;text-shadow:0 3px 0 #BB7D32,0 6px 0 #442A44,0 8px 0 #E65C9F;font-weight:950}.win-show.special .show-halo{background:repeating-conic-gradient(from -6deg,#FFE8A6 0 8deg,#EDA948 8deg 16deg)}.win-show.special .show-curtain::before{background:radial-gradient(circle at 70% 30%,#FF8ACFBB,transparent 12%);box-shadow:inset 0 0 70px #EE70C144,0 0 0 20px #EB78C010}.win-show.special .show-curtain::after{background:radial-gradient(circle at 30% 20%,#8CF1F2CC,transparent 13%);box-shadow:inset 0 0 70px #64D9E633,0 0 0 20px #72D3E310}.show-sparkles{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0}.show-sparkles i{position:absolute;font-style:normal;color:#FFF7DA;font-size:28px;text-shadow:0 0 1px #FFC865}.show-sparkles i:nth-child(1){left:9%;top:26%;color:#B1F8F1}.show-sparkles i:nth-child(2){right:8%;top:35%;color:#FFC5EA}.show-sparkles i:nth-child(3){left:6%;top:67%;font-size:20px}.show-sparkles i:nth-child(4){right:13%;top:14%;font-size:18px}.win-show[data-phase="pose"] .show-sparkles{opacity:1}.win-show[data-phase="pose"] .show-sparkles i{animation:sharp-glint 1.2s ease-out both}.show-foreground{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}.show-foreground i{position:absolute;top:-10%;left:calc((var(--f) - 3)*5%);width:26px;height:60px;border-radius:4px;background:linear-gradient(120deg,#FFF3B0,#DFA339 45%,#FFF2B0 65%,#B17735);box-shadow:2px 4px 7px #180F3855;opacity:0;transform:rotate(35deg)}.show-foreground i:nth-child(even){left:auto;right:calc((var(--f) - 4)*3%);background:linear-gradient(120deg,#FFD4EA,#EE78B3 45%,#FFF3E7 60%,#C65498);width:33px;height:70px}.show-foreground i:nth-child(3n){background:linear-gradient(120deg,#D5FFF1,#53D3D8 45%,#E5FFF8 65%,#2A8FBB)}.win-show[data-phase="burst"] .show-foreground i,.win-show[data-phase="pose"] .show-foreground i{animation:foreground-sweep 2s calc(var(--f)*.035s) cubic-bezier(.12,.6,.4,1) both}@keyframes sharp-glint{0%{opacity:0;scale:.1;rotate:-45deg}35%{opacity:1;scale:1.2;rotate:0deg}100%{opacity:0;scale:.6;rotate:35deg}}@keyframes foreground-sweep{0%{opacity:0;translate:0 -10dvh;rotate:15deg}15%{opacity:1}100%{opacity:0;translate:8vw 95dvh;rotate:210deg}}@media(orientation:landscape) and (max-height:600px){.show-ribbon{left:50%;right:0;top:16dvh;height:70px}.show-foreground i{height:40px}}@media(prefers-reduced-motion:reduce){.show-foreground,.show-sparkles{display:none}.show-ribbon{transition:none}}
 
 .win-show.special .show-curtain{background:radial-gradient(ellipse at 12% 58%,#32C4D56B,transparent 42%),radial-gradient(ellipse at 88% 30%,#F16CB578,transparent 40%),radial-gradient(ellipse at 50% 38%,#803E76,#211436 70%)}.win-show.special .show-halo{background:repeating-conic-gradient(from -6deg,#FFE394 0 7deg,transparent 7deg 14deg)}
+
+/* v8: a single readable comic beat. The friends willingly make room. */
+#celebration .show-hero,#celebration .show-friend{animation:none;transition:transform .55s cubic-bezier(.25,.65,.3,1),opacity .25s;opacity:1}
+#celebration .show-hero{transform:translate(300px,30px) rotate(12deg)}
+#celebration .friend-white{transform:translate(82px,90px) scale(1.05)}
+#celebration .friend-brown{transform:translate(-83px,78px) scale(1.05)}
+#celebration[data-phase="preview"] .show-hero,#celebration[data-phase="preview"] .show-friend{opacity:0;transform:translateY(400px)}
+#celebration[data-phase="climb1"] .show-hero{transform:translate(105px,4px) rotate(-12deg)}
+#celebration[data-phase="climb2"] .show-hero{transform:translate(-5px,0) rotate(4deg)}
+#celebration:is([data-phase="climb2"],[data-phase="climb3"],[data-phase="hold"],[data-phase="burst"],[data-phase="pose"],[data-phase="photo"]) .friend-white{transform:translate(6px,55px) scale(.88) rotate(-5deg)}
+#celebration:is([data-phase="climb2"],[data-phase="climb3"],[data-phase="hold"],[data-phase="burst"],[data-phase="pose"],[data-phase="photo"]) .friend-brown{transform:translate(-6px,57px) scale(.88) rotate(5deg)}
+#celebration[data-phase="climb3"] .show-hero{transform:translate(0,-7px)}
+#celebration[data-phase="hold"] .show-hero{transform:translate(0,10px) scale(1.02,.94)}
+#celebration[data-phase="burst"] .show-hero{transform:translate(0,5px) scale(1.015,.98)}
+#celebration[data-phase="pose"] .show-hero,#celebration[data-phase="photo"] .show-hero{transform:translate(0,-8px) rotate(-3deg)}
+#celebration .lead .paw{transition:transform .4s;animation:none;transform:none}
+#celebration[data-phase="climb1"] .lead .left-paw,#celebration[data-phase="climb2"] .lead .left-paw{transform:translate(-3px,-17px) rotate(35deg)}
+#celebration[data-phase="climb2"] .lead .right-paw{transform:translate(3px,-17px) rotate(-35deg)}
+#celebration:is([data-phase="hold"],[data-phase="burst"]) .lead .left-paw{transform:translate(15px,-2px) rotate(-15deg)}
+#celebration:is([data-phase="hold"],[data-phase="burst"]) .lead .right-paw{transform:translate(-15px,-2px) rotate(15deg)}
+#celebration:is([data-phase="pose"],[data-phase="photo"]) .lead .left-paw{transform:translate(18px,-7px) rotate(-20deg)}
+#celebration:is([data-phase="pose"],[data-phase="photo"]) .lead .right-paw{transform:translate(-18px,-7px) rotate(20deg)}
+#celebration .eyes-side,#celebration .eyes-rest{opacity:0}
+#celebration:is([data-phase="climb3"],[data-phase="hold"]) .friend .eyes-open{opacity:0}
+#celebration:is([data-phase="climb3"],[data-phase="hold"]) .friend .eyes-side{opacity:1}
+#celebration[data-phase="climb3"] .friend-white .show-eyes{transform:translateX(4px)}
+#celebration[data-phase="climb3"] .friend-brown .show-eyes{transform:translateX(-4px)}
+#celebration:is([data-phase="hold"],[data-phase="burst"]) .lead .eyes-open,#celebration:is([data-phase="hold"],[data-phase="burst"]) .lead .eyes-joy{opacity:0}
+#celebration:is([data-phase="hold"],[data-phase="burst"]) .lead .eyes-rest{opacity:1}
+#celebration .show-crown{animation:none;opacity:0;transform:translateY(-130px) rotate(-12deg);transition:none}
+#celebration[data-phase="hold"] .show-crown{opacity:1;transform:translateY(-65px) rotate(-6deg);transition:transform .75s ease-out,opacity .4s}
+#celebration[data-phase="burst"] .show-crown{opacity:1;animation:crown-seat .65s cubic-bezier(.3,.1,.5,1) both}
+#celebration:is([data-phase="pose"],[data-phase="photo"]) .show-crown{opacity:1;transform:none}
+.crown-glint{opacity:0;transform-origin:253px 146px}
+#celebration[data-phase="burst"] .crown-glint{animation:crown-glint .8s .4s ease-out both}
+#celebration[data-phase="pose"] .friend .paw{animation-duration:.45s;animation-iteration-count:2}
+#celebration[data-phase="burst"] .ear,#celebration[data-phase="burst"] .cheek{animation-iteration-count:1}
+@keyframes crown-seat{0%{transform:translateY(-65px) rotate(-6deg)}60%{transform:translateY(3px) rotate(2deg)}80%{transform:translateY(-5px)}100%{transform:none}}
+@keyframes crown-glint{0%,100%{opacity:0;scale:.2}35%{opacity:1;scale:1.25}}
+/* Soft distant arcs, a focused pool of light, and close ribbons moving at different speeds. */
+#celebration .show-halo{background:radial-gradient(ellipse at 50% 58%,#FFF0B3A6,transparent 48%)!important;mask-image:none;inset:0;transform:none!important;transition:opacity .7s;opacity:0}
+#celebration:is([data-phase="hold"],[data-phase="burst"],[data-phase="pose"],[data-phase="photo"]) .show-halo{opacity:1}
+.show-orbit{position:absolute;inset:24% -22% 10%;border:1px solid #FFE6B655;border-radius:50%;box-shadow:0 0 0 30px #D9C9E008,0 0 0 65px #EEDBB20A,inset 0 0 75px #EAC7A422;transform:rotate(-28deg);z-index:-1;pointer-events:none}
+.show-orbit::before{content:"";position:absolute;inset:15px;border:1px dashed #F5D79C44;border-radius:50%}.show-orbit::after{content:"✦";position:absolute;left:27%;top:1%;color:#FFF1C3;font-size:22px;text-shadow:0 0 12px #FFD280}
+#celebration.special .show-orbit{border-top:3px solid #FFE1A5AA;border-bottom:2px solid #ACD9D780}
+#celebration[open] .show-orbit{animation:orbit-drift 6.2s ease-out both}
+.show-near{position:absolute;left:-60%;top:45%;width:120%;height:30%;border:14px solid transparent;border-top-color:#F9D796AA;border-radius:50%;filter:drop-shadow(0 9px 10px #100D3566);transform:rotate(-35deg) translateX(-100%);pointer-events:none;z-index:2;opacity:0}
+#celebration[data-phase="burst"] .show-near{animation:near-pass .85s ease-in-out both}
+@keyframes orbit-drift{from{transform:translateY(25px) rotate(-38deg);opacity:0}30%{opacity:1}to{transform:translateY(-10px) rotate(-15deg)}}
+@keyframes near-pass{0%{opacity:0;transform:rotate(-35deg) translate(-70%,30%)}20%{opacity:.8}100%{opacity:0;transform:rotate(-15deg) translate(170%,-100%)}}
+#celebration .show-curtain::before,#celebration .show-curtain::after{border-color:#EBC88633;background:radial-gradient(circle at 70% 30%,#FFE7AB44,transparent 12%);box-shadow:inset 0 0 60px #D59DD022}
+#celebration .show-curtain{background:radial-gradient(ellipse at 50% 68%,#96738A,#342342 65%,#20192D)!important}
+#celebration.special .show-curtain{background:radial-gradient(ellipse at 15% 65%,#34667799,transparent 50%),radial-gradient(ellipse at 85% 40%,#BD608166,transparent 50%),linear-gradient(#271A36,#654262)!important}
+#celebration.win-show>#win-title{background:linear-gradient(#FFFFE2 8%,#FFF0A4 27%,#D39A3D 46%,#FFF5BC 49%,#F2C46F 70%,#C18A31);background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-stroke:.6px #FCE1A2;filter:drop-shadow(0 2px 0 #A86730) drop-shadow(0 3px 0 #704034) drop-shadow(0 3px 0 #341F36) drop-shadow(0 10px 8px #170C2777);text-shadow:none}
+#celebration .show-ribbon{background:linear-gradient(175deg,#B07A96,#5B3655 15%,#302139 55%,#784568);box-shadow:0 8px 16px #11082088;border-bottom-color:#E6AD5F}
+#celebration .show-sparkles i:nth-child(1){left:20%;top:42%}#celebration .show-sparkles i:nth-child(2){right:12%;top:12%}
+#celebration[data-phase="pose"] .show-foreground i{animation:none;opacity:0}
+#celebration .show-foreground i{width:14px;height:35px}
+#celebration:not(.special) .show-near{display:none}
+/* One sustained climax: layered light blooms at the crown landing, never strobes. */
+#celebration .show-halo::before,#celebration .show-halo::after{content:"";position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .8s ease-out .2s}
+#celebration .show-halo::before{background:radial-gradient(ellipse at 50% 55%,#FFF1BC 0%,#EBC478AA 34%,#C58C5A66 65%,transparent 90%)}
+#celebration .show-halo::after{inset:-12%;background:repeating-conic-gradient(from -12deg at 50% 57%,#FFF5CC88 0deg,transparent 7deg 24deg,#FFD97C55 29deg,transparent 34deg 50deg);mask-image:radial-gradient(ellipse at 50% 57%,transparent 9%,#000B 28%,#0005 58%,transparent 78%);filter:blur(2px)}
+#celebration.special .show-halo::before{background:radial-gradient(ellipse at 50% 54%,#FFF4C7 0%,#FFE3A8E8 20%,transparent 62%),radial-gradient(ellipse at 4% 55%,#82EEEAD9,transparent 65%),radial-gradient(ellipse at 96% 44%,#FFA8D4D9,transparent 66%),linear-gradient(150deg,#B17C6488,#DEB77399 62%,#72598577)}
+#celebration.special .show-halo::after{background:repeating-conic-gradient(from -12deg at 50% 57%,#FFF4CACC 0deg,transparent 9deg 23deg,#B6FFFF99 28deg,transparent 34deg 47deg,#FFC6ECAA 53deg,transparent 59deg 72deg);filter:blur(1px)}
+#celebration:is([data-phase="burst"],[data-phase="pose"],[data-phase="photo"]) .show-halo::before{opacity:.76}
+#celebration:is([data-phase="burst"],[data-phase="pose"],[data-phase="photo"]) .show-halo::after{opacity:.65}
+#celebration.special:is([data-phase="burst"],[data-phase="pose"],[data-phase="photo"]) .show-halo::before,#celebration.special:is([data-phase="burst"],[data-phase="pose"],[data-phase="photo"]) .show-halo::after{opacity:1}
+#celebration.special[data-phase="burst"] .show-foreground i{animation-delay:calc(.32s + var(--f)*.035s)}
+#celebration.special[data-phase="burst"] .show-near{animation-delay:.3s}
+#celebration[data-phase="burst"] .friend .left-paw{animation:friend-clap-left .45s .39s ease-in-out 1}
+#celebration[data-phase="burst"] .friend .right-paw{animation:friend-clap-right .45s .39s ease-in-out 1}
+#celebration:is([data-phase="burst"],[data-phase="pose"],[data-phase="photo"]) .show-orbit{filter:drop-shadow(0 0 10px #FFE3A588)}
+@media(prefers-reduced-motion:reduce){#celebration .show-halo::before,#celebration .show-halo::after{transition:none}}
+@media(prefers-reduced-motion:reduce){#celebration .show-orbit,#celebration .show-near{animation:none;display:none}#celebration .show-hero,#celebration .show-friend,#celebration .show-crown,#celebration .paw{transition:none;animation:none}#celebration[data-phase="photo"] .show-crown{opacity:1;transform:none}}
