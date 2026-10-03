@@ -16,12 +16,12 @@ function render(){
  $('pan-note').hidden=g.board.n<7;
  g.marks.forEach((v,i)=>{
   const b=document.createElement('button');b.className='cell'+(selected===i?' selected':'')+(hinted.includes(i)?' hinted':'')+(premise.includes(i)?' premise':'')+(excluded.has(i)?' excluded':'');b.dataset.region=g.board.regions[i];
-  b.setAttribute('aria-label',`${Math.floor(i/g.board.n)+1}行 ${i%g.board.n+1}列 部屋${g.board.regions[i]+1} ${['空き',theme.name,'除外','仮置き'][v]}${excluded.has(i)?' ヒントで除外':''}`);b.setAttribute('aria-pressed',String(selected===i));
+  b.setAttribute('aria-label',`${Math.floor(i/g.board.n)+1}行 ${i%g.board.n+1}列 部屋${g.board.regions[i]+1} ${['空き',theme.name,'除外','仮置き'][v]}${excluded.has(i)?' ヒントで除外':''}`);b.setAttribute('aria-pressed',String(v!==0));
   const small=document.createElement('small');small.textContent=g.board.regions[i]+1;b.append(small,document.createTextNode(v?['',theme.icon,'×','?'][v]:excluded.has(i)?'·':''));
   b.onclick=()=>{
    if(busy||won(g))return;
-   if(selected!==i){selected=i;render();$('status').textContent='選択中。同じマスをもう一度押すと確定します。';return;}
-   g=mark(g,i,Number(document.querySelector('input[name=mode]:checked').value));selected=-1;resetHint();save();render();
+   const value=Number(document.querySelector('input[name=mode]:checked').value);if(g.marks[i]===value)return;
+   g=mark(g,i,value);selected=-1;resetHint();save();render();
    $('status').textContent=won(g)?'みんなの居場所が見つかりました！':'記録しました。戻す・仮置きでゆっくり考えられます。';
   };$('board').append(b);
  });
