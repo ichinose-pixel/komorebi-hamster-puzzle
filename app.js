@@ -1,11 +1,11 @@
-import {fresh,mark,undo,won,restore,solve} from './core.js';
-import {analyze} from './deduction.js';
-import {targetFor,fallbackFor,signature} from './progression.js';
+import {fresh,mark,undo,won,restore,solve} from './core.js?v=017fc91a860d4fea';
+import {analyze} from './deduction.js?v=017fc91a860d4fea';
+import {targetFor,fallbackFor,signature} from './progression.js?v=017fc91a860d4fea';
 const $=id=>document.getElementById(id),lp=new URLSearchParams(location.search).get('mode')==='lp';
 const key=lp?'komorebi-lp-v1':'komorebi-v1';
 const theme={icon:'🐹',name:'ハムスター'};
 let g,selected=-1,hinted=[],premise=[],excluded=new Set(),hintCursor=0,busy=false,score=0,worker=null,lpCtaAvailable=false,recent=[];
-const catalog=await fetch('./catalog.json').then(r=>r.json());
+const catalog=await fetch('./catalog.json?v=017fc91a860d4fea').then(r=>r.json());
 function resetHint(){hinted=[];premise=[];excluded.clear();hintCursor=0;}
 function save(){try{localStorage.setItem(key,JSON.stringify(g));localStorage.setItem(key+'-recent',JSON.stringify(recent.slice(-50)));}catch{$('status').textContent+=' 保存できない環境です。';}}
 function render(){
@@ -35,7 +35,7 @@ async function start(stage){
  const result=await new Promise(resolve=>{
   let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};
   const timer=setTimeout(()=>finish(null),1000);
-  try{worker=new Worker('./worker.js',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}
+  try{worker=new Worker('./worker.js?v=017fc91a860d4fea',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}
  });
  const chosen=result||fallbackFor(seed,stage,catalog,recent);
  g=fresh(chosen.board,seed,stage);g.generatorVersion=2;score=chosen.score;recent.push(signature(g.board));busy=false;selected=-1;resetHint();save();render();
