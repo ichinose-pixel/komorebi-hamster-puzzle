@@ -1,15 +1,22 @@
-import {tapController} from './interaction.js?v=0800796296e5a9c4';
-import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=0800796296e5a9c4';
-import {createAudio} from './audio.js?v=0800796296e5a9c4';
-import {fresh,mark,undo,won,restore,solve} from './core.js?v=0800796296e5a9c4';
-import {analyze} from './deduction.js?v=0800796296e5a9c4';
-import {fallbackFor,signature} from './progression.js?v=0800796296e5a9c4';
-import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam} from './art.js?v=0800796296e5a9c4';
+import {tapController} from './interaction.js?v=e2113a351a36a2c8';
+import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=e2113a351a36a2c8';
+import {createAudio} from './audio.js?v=e2113a351a36a2c8';
+import {fresh,mark,undo,won,restore,solve} from './core.js?v=e2113a351a36a2c8';
+import {analyze} from './deduction.js?v=e2113a351a36a2c8';
+import {fallbackFor,signature} from './progression.js?v=e2113a351a36a2c8';
+import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=e2113a351a36a2c8';
 const $=id=>document.getElementById(id),lp=new URLSearchParams(location.search).get('mode')==='lp';
 const key=lp?'komorebi-lp-v1':'komorebi-v1',tutorialKey='komorebi-tutorial-v3',collectionKey=key+'-collection-v3';
 const audio=createAudio(key);
+function syncAudio(){for(const name of ['bgm','se']){$(name+'-volume').value=Math.round(audio.settings[name]*100);$(name+'-value').textContent=Math.round(audio.settings[name]*100)+'%';}const on=audio.settings.bgm>0||audio.settings.se>0;$('sound').checked=on;$('title-sound').checked=on;}
+function enableAudio(feedback=false){return audio.activate({feedback});}
+for(const name of ['bgm','se'])$(name+'-volume').oninput=()=>{audio.set(name,Number($(name+'-volume').value)/100);syncAudio();if(audio.settings.bgm>0||audio.settings.se>0)enableAudio(name==='se'&&audio.settings.se>0);};
+function masterSound(on){audio.set('bgm',on?.22:0);audio.set('se',on?.45:0);syncAudio();if(on)enableAudio(true);}
+$('sound').onchange=()=>masterSound($('sound').checked);$('title-sound').onchange=()=>masterSound($('title-sound').checked);$('audio-resume').onclick=()=>enableAudio(true);$('title-audio-resume').onclick=()=>enableAudio(true);
+audio.subscribe(status=>{const retry=['blocked','paused'].includes(status),copy={off:'音はオフです',waiting:'最初の操作で音が始まります',starting:'音を開始しています…',playing:'音を再生中',paused:'音が中断されました',blocked:'音を開始できませんでした。再開を押してください',unsupported:'この環境では音声を再生できません'}[status];$('audio-status').textContent=copy;$('title-audio-status').textContent=copy;$('audio-resume').hidden=!retry;$('title-audio-resume').hidden=!retry;});syncAudio();
+
 const palette=['#F4D58F','#A5D9BE','#C9B9E3','#ADD8E5','#F3B7AA','#D4DFA2','#B5C5ED','#EBD0B2'];
-const catalog=await fetch('./catalog.json?v=0800796296e5a9c4').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
+const catalog=await fetch('./catalog.json?v=e2113a351a36a2c8').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
 let rewardTimer=null,rewardId='',inGame=lp,input=null,hintPhase=0,hintStep=null,hintContext=[];
 let g,busy=false,recent=[],hinted=[],premise=[],excluded=new Set(),hintCursor=0,errorCell=-1,winFor='',storageOk=true,worker=null,lpTimer=null;
 let tut={version:1,index:0,ack:false,final:[],done:false},collection={version:1,completed:[]};
@@ -50,7 +57,7 @@ function drawBoard(b,marks,tutorial=false){
 }
 function render(){
  document.querySelector('.app').classList.toggle('hinting',!$('hint-panel').hidden);
- audio.setScene(inGame&&tut.done&&!!g&&!won(g));
+ audio.setScene(!inGame||!tut.done||!g||!won(g));
  const tutorial=!tut.done;document.querySelector('.app').classList.toggle('tutorial',tutorial);$('advanced-input').hidden=tutorial;$('game-actions').hidden=tutorial;$('tutorial-actions').hidden=!tutorial;$('tutorial-progress').hidden=!tutorial;
  $('collection-count').textContent=collection.completed.length;$('swipe-demo').hidden=!tutorial;$('gesture-guide').hidden=tutorial;
  if(tutorial){const l=lessons[tut.index];$('chapter').textContent='さわって覚える · はじめの一歩';$('stage').textContent=l.title;$('board-caption').textContent=l.caption;$('placed').textContent=`${tut.index+1} / ${lessons.length}`;drawBoard(l.board,tutorialMarks(),true);$('tutorial-progress').innerHTML=lessons.map((_,i)=>`<i class="${i<tut.index?'done':i===tut.index?'active':''}"></i>`).join('');$('tutorial-next').disabled=!tut.ack;$('tutorial-next').textContent=tut.index===5?'おへや探しをはじめる':'わかった、次へ';message(tut.ack?l.after:l.text);$('cta').hidden=true;return;}
@@ -74,26 +81,35 @@ function playTap(i,action='double'){
  g=mark(g,i,value);resetHint();save();render();sound(value===1?'place':value===0?'remove':'mark');if(won(g))complete();else message(value===0?'マークを消しました。空きマスは2回タップでハム、1回で除外。':value===3?'仮置きメモです。タップで消してから、通常操作で置き直せます。':value===2?'ここは除外。もう1回タップ、またはここからなぞると解除。':'いい居場所だね。ぼくの席は広めにね。');
 }
 async function start(stage){if(busy)return;input?.reset();busy=true;message('次のおへやを準備中…');if(g)render();const seed=crypto.getRandomValues(new Uint32Array(1))[0];
- const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=0800796296e5a9c4',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
+ const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=e2113a351a36a2c8',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
  const chosen=result||fallbackFor(seed,stage,catalog,recent);g=fresh(chosen.board,seed,stage);g.hintsUsed=0;g.generatorVersion=2;recent.push(signature(g.board));busy=false;winFor='';resetHint();save();render();if(tut.done)message(stage>60?'ここからは延長戦。難しさの上限は同じ、新しい盤面です。':'まずは、小さいおへやの候補を見てみよう。');}
 function collectionInfo(){return {count:collection.completed.length,unlocked:roomCount(collection)};}
 function nextLabel(){return lp?'本編でつづける':`ステージ${g.stage+1}へ`;}
-function installReward(){clearTimeout(rewardTimer);rewardTimer=null;$('reward-stage').classList.add('installed');}
-function revealReward(skip=false){clearTimeout(rewardTimer);rewardTimer=null;$('reward-stage').classList.add('revealed');$('celebration').classList.add('fanfare');$('skip-reward').hidden=true;$('reward-details').hidden=false;collection.revealed=rewardId;save();if(!skip)sound(true);if($('celebration').open)$('next').focus({preventScroll:true});if(skip||matchMedia('(prefers-reduced-motion: reduce)').matches)installReward();else rewardTimer=setTimeout(installReward,900);}
-async function advanceStage(){if(busy)return;input?.reset();document.querySelectorAll('dialog[open]').forEach(d=>d.close());if(g&&won(g)){if(lp){location.href='./';return;}inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(g.stage+1);}else enterGame();}
+let showTimers=[];
+function clearShow(){showTimers.forEach(clearTimeout);showTimers=[];clearTimeout(rewardTimer);rewardTimer=null;audio.cancelCelebration();document.querySelector('.app').classList.remove('clear-wave');}
+function setShowPhase(phase){$('celebration').dataset.phase=phase;if(['burst','pose','photo'].includes(phase)){$('reward-stage').classList.add('revealed');$('celebration').classList.add('fanfare');}if(phase==='photo'){$('reward-stage').classList.add('installed');$('skip-reward').hidden=true;collection.revealed=rewardId;save();}}
+function installReward(){setShowPhase('photo');}
+function revealReward(skip=false){clearShow();setShowPhase('photo');if($('celebration').open)$('next').focus({preventScroll:true});}
+function playShow(special){
+ clearShow();document.querySelector('.app').classList.add('clear-wave');setShowPhase('preview');audio.effect('announce');
+ const phases=special?[[650,'rise','rise1'],[1650,'climb1','rise1'],[2050,'climb2','rise2'],[2450,'climb3','rise3'],[2850,'hold','quiet'],[3150,'burst','open'],[4250,'pose','pose'],[5600,'photo','mark']]:[[400,'rise','rise1'],[1050,'climb1','rise1'],[1350,'climb2','rise2'],[1650,'climb3','rise3'],[1950,'hold','quiet'],[2200,'burst','open'],[3100,'pose','pose'],[4100,'photo','mark']];
+ for(const [ms,phase,sound] of phases)showTimers.push(setTimeout(()=>{setShowPhase(phase);if(sound==='quiet')audio.cancelCelebration();else audio.effect(sound);},ms));
+}
+
+async function advanceStage(){if(busy)return;input?.reset();clearShow();document.querySelectorAll('dialog[open]').forEach(d=>d.close());if(g&&won(g)){if(lp){location.href='./';return;}inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(g.stage+1);}else enterGame();}
 function complete(){
  const id=String(g.stage)+':'+g.seed;const before=roomCount(collection);if(!collection.completed.includes(id)){collection.completed.push(id);save();}if(winFor===id)return;winFor=id;rewardId=id;input?.reset();render();
  const count=collection.completed.indexOf(id)+1,look=rewardFor(count),after=roomCount(collection),isNew=milestones.includes(count)&&milestones.indexOf(count)>=(collection.legacyFurniture||0),item=furniture[Math.max(0,after-1)];
- $('win-title').textContent=isNew?'おうち、ちょっと豪華に！':'ハム、よろこび中！';$('win-copy').textContent='ステージ '+g.stage+' クリア'+(g.hintsUsed===0?' · ノーヒントで解けた！':' · おみごと！');
- $('reward-title').textContent=isNew?item.name:look.title;$('reward-copy').textContent=isNew?'「'+item.note+'」':'「'+look.quote+'」';$('gift-label').textContent=isNew?'節目の家具 · '+count+'回クリア':'クリアのお祝い';
+ const special=g.hintsUsed===0||g.stage===60;$('celebration').classList.toggle('special',special);$('celebration').classList.toggle('milestone',isNew);$('win-title').textContent=g.stage===60?'60ステージ突破！':g.hintsUsed===0?'ノーヒント、達成！':'おみごと！';$('win-copy').textContent='ステージ '+g.stage+' クリア'+(g.hintsUsed===0?' · ノーヒントで解けた！':' · おみごと！');
+ $('reward-title').textContent=isNew?item.name:look.title;$('reward-copy').textContent=special?'「かしこいのはきみ。主役は、ぼく。」':'「'+look.quote+'」';$('gift-label').textContent=isNew?'家具を獲得 · '+item.name:special?'ひらめきに、王冠を。':'ハムも拍手しています';
  $('reward-stage').dataset.variant=look.variant;$('reward-stage').classList.toggle('milestone',isNew);
- $('reward-object').innerHTML=isNew?furnitureArt(after-1):celebrateHam(look.variant);$('capsule-art').innerHTML=capsule();$('reward-ham').innerHTML=hamster(true);$('reward-home').innerHTML=roomScene(after,true);
+ $('reward-object').innerHTML=showCast(special);$('capsule-art').innerHTML=capsule();$('reward-ham').innerHTML=hamster(true);$('reward-home').innerHTML=roomScene(after,true);
  $('next').textContent=nextLabel();$('reward-stage').classList.remove('revealed','installed');$('reward-details').hidden=false;$('skip-reward').hidden=false;$('celebration').classList.remove('fanfare');
  if(!$('celebration').open)$('celebration').showModal();clearTimeout(rewardTimer);message('クリア！ ハムが拍手を待っています。');
- if(collection.revealed===id||matchMedia('(prefers-reduced-motion: reduce)').matches)revealReward(true);else{audio.capsule();rewardTimer=setTimeout(()=>revealReward(false),1050);}
+ if(collection.revealed===id||matchMedia('(prefers-reduced-motion: reduce)').matches)revealReward(true);else playShow(special);
 }
 function showCollection(){const c=collectionInfo();$('collection-room').innerHTML=roomScene(c.unlocked,true);$('collection-description').textContent=`家具 ${c.unlocked} / 12 ・ クリア ${c.count} 回${c.unlocked===12?'。このお家の家具は完成！ パズルはこの先も続きます。':''}`;$('collection-items').innerHTML=furniture.map((item,i)=>`<div class="collectible ${i<c.unlocked?'unlocked':''}">${i<c.unlocked?furnitureArt(i):'<span class="locked-gift">?</span>'}<strong>${i<c.unlocked?item.name:'おたのしみ'}</strong><small>${i<c.unlocked?item.note:milestones[i]+'回クリアで届く'}</small></div>`).join('');const index=Math.max(0,c.count-1);$('home-story').hidden=true;$('home-story-title').textContent=episodes[index%4].title;$('home-story-art').innerHTML=episodeScene(index);$('home-story-art').setAttribute('aria-label',episodes[index%4].description);$('house-next').textContent=g&&won(g)?nextLabel():'パズルへ';$('collection-dialog').showModal();}
-function showTitle(){input?.reset();save();document.querySelectorAll('dialog[open]').forEach(d=>d.close());inGame=false;audio.setScene(false);$('title-screen').hidden=false;document.querySelector('.app').hidden=true;clearTimeout(lpTimer);lpTimer=null;updateTitle();$('title-play').focus();}
+function showTitle(){input?.reset();save();document.querySelectorAll('dialog[open]').forEach(d=>d.close());inGame=false;audio.setScene(true);$('title-screen').hidden=false;document.querySelector('.app').hidden=true;clearTimeout(lpTimer);lpTimer=null;updateTitle();$('title-play').focus();}
 function hasProgress(){return !!g&&(g.stage>1||g.marks.some(Boolean)||g.history.length>0||tut.done||tut.index>0||tut.ack);}
 function updateTitle(){const progress=hasProgress();$('title-play').disabled=!g||busy;$('title-play').textContent=progress?'つづきから':'はじめる';$('title-restart').hidden=!progress;$('title-restart').disabled=busy;}
 function enterGame(){if(!g||busy)return;inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;render();beginLp();if(tut.done&&won(g)){winFor='';complete();}else $('help').focus({preventScroll:true});}
@@ -103,11 +119,11 @@ $('tutorial-next').onclick=()=>{input?.reset();if(!tut.ack)return;if(tut.index==
 $('replay').onclick=()=>{input?.reset();$('help-dialog').close();inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;tut={version:1,index:0,ack:false,final:[],done:false};save();resetHint();render();};
 $('undo').onclick=()=>{input?.reset();if(busy)return;g=undo(g);winFor='';resetHint();save();render();message('ひとつ前に戻しました。ゆっくり考えて大丈夫。');};
 function hintRender(){
- if(!hintStep)return;$('hint-panel').hidden=false;const cells=hintStep.place!==undefined?[hintStep.place]:hintStep.remove;
- premise=hintStep.premise;hinted=hintPhase===2?cells:[];
- $('hint-heading').textContent=['1 · ここに注目','2 · 理由を見よう','3 · 次にできること'][hintPhase];
- $('hint-text').textContent=hintPhase===0?'縞の範囲と、破線枠の候補を見てみよう。':hintPhase===1?hintStep.reason:hintStep.fix?'枠のマークをタップして消し、もう一度考えよう。':hintStep.place!==undefined?'太い枠が、置ける1マス。マークを消してから2回タップでハムを置こう。':'太い枠には置けません。「除外を付ける」で印だけ付けられます。';
- $('hint-continue').textContent=hintPhase<2?'つづき':hintStep.place===undefined&&!hintStep.fix?'除外を付ける':'わかった';render();
+ if(!hintStep)return;$('hint-panel').hidden=false;const cells=hintStep.place!==undefined?[hintStep.place]:hintStep.remove;premise=hintStep.premise;hinted=cells;
+ const hasMark=hintStep.place!==undefined&&g.marks[hintStep.place]!==0;
+ $('hint-heading').textContent=hintStep.fix?'ここを見直そう':hintStep.place!==undefined?'ここに置けます':'ここを除外できます';
+ const action=hintStep.fix?'枠のマークを1回タップで消して考え直そう。':hintStep.place!==undefined?(hasMark?'枠のマークを1回で消し、2回タップでハムを置こう。':'枠の空きマスを2回タップでハムを置こう。'):'枠のマスには置けません。印を付けるかは自分で選べます。';
+ $('hint-text').textContent=hintStep.reason+' '+action;$('hint-continue').textContent=hintStep.place===undefined&&!hintStep.fix?'除外を付ける':'閉じる';render();
 }
 $('hint').onclick=()=>{input?.reset();if(busy||!g||won(g))return;
  const placed=g.marks.flatMap((v,i)=>v===1?[i]:[]),solution=solve(g.board)[0],badPlaced=placed.filter(i=>!solution.includes(i)),badExcluded=g.marks.flatMap((v,i)=>v===2&&solution.includes(i)?[i]:[]);
@@ -116,15 +132,12 @@ $('hint').onclick=()=>{input?.reset();if(busy||!g||won(g))return;
  else{const blocked=g.marks.flatMap((v,i)=>v===2?[i]:[]);hintStep=analyze(g.board,placed,blocked).steps[0];if(!hintStep){message('候補が見つかりません。マークを戻して確認しよう。');return;}hintContext=hintStep.context||hintStep.premise;}
  hintRender();
 };
-$('hint-continue').onclick=()=>{if(!hintStep)return;if(hintPhase<2){hintPhase++;hintRender();return;}if(hintStep.place===undefined&&!hintStep.fix){const marks=[...g.marks];for(const i of hintStep.remove)if(marks[i]===0||marks[i]===3)marks[i]=2;g={...g,marks,history:[...g.history.slice(-99),g.marks]};save();}resetHint();render();};
+$('hint-continue').onclick=()=>{if(!hintStep)return;if(hintStep.place===undefined&&!hintStep.fix){const marks=[...g.marks];for(const i of hintStep.remove)if(marks[i]===0||marks[i]===3)marks[i]=2;g={...g,marks,history:[...g.history.slice(-99),g.marks]};save();}resetHint();render();};
 $('hint-close').onclick=()=>{resetHint();render();};
-$('next').onclick=advanceStage;$('house-next').onclick=advanceStage;$('close-win').onclick=()=>{$('celebration').close();};$('celebration').addEventListener('close',()=>{clearTimeout(rewardTimer);rewardTimer=null;audio.cancelCelebration();});$('skip-reward').onclick=()=>{audio.cancelCelebration();revealReward(true);};$('view-room').onclick=()=>{$('celebration').close();showCollection();};
+$('next').onclick=advanceStage;$('house-next').onclick=advanceStage;$('close-win').onclick=()=>{$('celebration').close();};$('celebration').addEventListener('close',clearShow);$('skip-reward').onclick=()=>{audio.cancelCelebration();revealReward(true);};$('view-room').onclick=()=>{$('celebration').close();showCollection();};
 $('help').onclick=()=>{input?.reset();$('help-dialog').showModal();};$('learn-tab').onclick=()=>$('help-dialog').showModal();$('collection-tab').onclick=showCollection;$('play-tab').onclick=()=>{if(tut.done&&g&&won(g)){winFor='';complete();}};
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
-function syncAudio(){for(const name of ['bgm','se']){$(name+'-volume').value=Math.round(audio.settings[name]*100);$(name+'-value').textContent=Math.round(audio.settings[name]*100)+'%';}const on=audio.settings.bgm>0||audio.settings.se>0;$('sound').checked=on;$('title-sound').checked=on;}
-for(const name of ['bgm','se'])$(name+'-volume').oninput=()=>{audio.set(name,Number($(name+'-volume').value)/100);syncAudio();};
-function masterSound(on){audio.set('bgm',on?.22:0);audio.set('se',on?.45:0);syncAudio();if(on)sound();}
-$('sound').onchange=()=>masterSound($('sound').checked);$('title-sound').onchange=()=>masterSound($('title-sound').checked);syncAudio();
+
 document.querySelector('.brand-mark').innerHTML=hamster();$('guide-art').innerHTML=hamster();document.querySelector('.hamster-symbol').innerHTML=hamster();$('seed-icon').innerHTML=icon('seed');$('reward-art').innerHTML=icon('seed');$('help').innerHTML=icon('help');$('close-win').innerHTML=icon('close');document.querySelectorAll('[data-close].icon-button').forEach(b=>b.innerHTML=icon('close'));$('undo').innerHTML=icon('undo')+'戻す';$('hint').innerHTML=icon('hint')+'ヒント';$('play-tab').innerHTML=icon('home')+'あそぶ';$('collection-tab').innerHTML=icon('seed')+'おへや';$('learn-tab').innerHTML=icon('book')+'あそびかた';
 try{g=restore(localStorage.getItem(key)||'');const r=read(key+'-recent');if(Array.isArray(r))recent=r.filter(x=>typeof x==='string').slice(-50);}catch{}
 if(g){render();if(tut.done)message(won(g)?'完成済みのおへやです。「あそぶ」から次へ進めます。':'おかえりなさい。前回の続きから遊べます。');}else await start(1);
