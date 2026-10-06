@@ -1,6 +1,6 @@
-import {generateEndless,reserve,canonical,endlessBand,                              } from './endless.js?v=77f9ea4e4a11669e';
-import {rng,solve,validBoard,          } from './core.js?v=77f9ea4e4a11669e';
-import {analyze} from './deduction.js?v=77f9ea4e4a11669e';
+import {generateEndless,reserve,canonical,endlessBand,                              } from './endless.js?v=09c0f56a41bdf7e7';
+import {rng,solve,validBoard,          } from './core.js?v=09c0f56a41bdf7e7';
+import {analyze} from './deduction.js?v=09c0f56a41bdf7e7';
                                                                                                    
                                                                                                           
 export function targetFor(stage       ,catalog        ){if(stage>60){if(!catalog.endless?.length)throw Error('MISSING_ENDLESS_BANK');const band=endlessBand(stage);return {n:7,target:band.min,min:band.min,max:band.max,chain:band.chain,entries:catalog.endless.filter(e=>e.score>=band.min&&e.score<=band.max),endless:true};}const index=Math.max(0,stage-1);return {...catalog.stages[index],endless:false};}

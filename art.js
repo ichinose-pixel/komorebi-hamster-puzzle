@@ -1,4 +1,4 @@
-import {cheekHam} from './character.js?v=77f9ea4e4a11669e';
+import {cheekHam} from './character.js?v=09c0f56a41bdf7e7';
 // hamudoku! Original character and miniature set. No third-party art or fonts.
 const ink='#343B52';
 const wrap=(body,box='0 0 120 120')=>`<svg viewBox="${box}" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${body}</svg>`;

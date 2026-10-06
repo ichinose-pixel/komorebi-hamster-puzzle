@@ -31,6 +31,8 @@ function musicStep(ctx,bus,t,index,active){const step=index%loopSteps,bar=Math.f
  if(eighth===0||eighth===4)drum(ctx,bus,t,'kick',.10,active);if(eighth===2||eighth===6)drum(ctx,bus,t,'brush',.06,active);if(eighth%2===1)drum(ctx,bus,t,'hat',.035,active);
 }
 function effectNotes(ctx,bus,t,kind,active){
+ if(kind==='coin-up'){[79,84,88].forEach((m,i)=>{note(ctx,bus,t+i*.085,m,.28,.15,'bell',active);note(ctx,bus,t+i*.085,m+12,.10,.035,'bell',active);});return;}
+ if(kind==='coin-land'){note(ctx,bus,t,91,.18,.12,'bell',active);note(ctx,bus,t+.025,96,.25,.07,'bell',active);return;}
  if(kind==='mark'){note(ctx,bus,t,72,.065,.14,'bell',active);return;}
  if(kind==='place'){note(ctx,bus,t,84,.16,.27,'bell',active);note(ctx,bus,t+.03,91,.1,.09,'bell',active);return;}
  if(kind==='remove'){note(ctx,bus,t,76,.09,.19,'bell',active);note(ctx,bus,t+.05,69,.12,.15,'bell',active);return;}
@@ -52,7 +54,7 @@ export function createAudio(storageKey){
  function gains(){if(!ctx)return;const t=ctx.currentTime;music.gain.cancelScheduledValues(t);music.gain.setTargetAtTime(armed&&desired?settings.bgm:0,t,.035);fx.gain.setTargetAtTime(armed?settings.se:0,t,.015);}
  function tick(){if(!armed||!ctx||ctx.state!=='running'||document.hidden||!enabled())return;if(next<ctx.currentTime-.2)next=ctx.currentTime+.01;while(next<ctx.currentTime+.14){if(desired&&settings.bgm>0){musicStep(ctx,music,next,step,active);step++;}next+=stepSeconds;}}
  function start(){if(!armed||!enabled()||document.hidden||ctx?.state!=='running')return;gains();if(timer===null){next=ctx.currentTime+.012;timer=setInterval(tick,70);}tick();status='playing';notify();}
- function effect(kind){if(!armed||!ctx||ctx.state!=='running'||document.hidden||settings.se===0)return;const t=ctx.currentTime;if((kind===lastKind&&t-last<.08)||active.size+celebration.size>64)return;last=t;lastKind=kind;effects++;effectNotes(ctx,fx,t+.008,kind,['clear','open','announce','rise1','rise2','rise3','pose'].includes(kind)?celebration:active);}
+ function effect(kind){if(!armed||!ctx||ctx.state!=='running'||document.hidden||settings.se===0)return;const t=ctx.currentTime;if((kind===lastKind&&t-last<.08)||active.size+celebration.size>64)return;last=t;lastKind=kind;effects++;effectNotes(ctx,fx,t+.008,kind,['clear','open','announce','rise1','rise2','rise3','pose','coin-up','coin-land'].includes(kind)?celebration:active);}
  function pause(reason='paused'){epoch++;pending=null;feedbackPending=false;armed=false;stop();gains();status=enabled()?reason:'off';notify();ctx?.suspend().catch(()=>{});}
  // resume() is called synchronously in the actual control's gesture handler.
  // No resource fetch, timer or await occurs before it. A generation guard rejects stale completions.

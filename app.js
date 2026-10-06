@@ -1,18 +1,20 @@
-import {createEndlessQueue} from './endless-queue.js?v=77f9ea4e4a11669e';
-import {mountTitle} from './title.js?v=77f9ea4e4a11669e';
-import {mountWorld} from './world-ui.js?v=77f9ea4e4a11669e';
-import {createWorldStore} from './world-store.js?v=77f9ea4e4a11669e';
-import {completeNormal,completeDaily,saveDailyGame,balance,tickResident} from './economy.js?v=77f9ea4e4a11669e';
-import {tapController} from './interaction.js?v=77f9ea4e4a11669e';
-import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=77f9ea4e4a11669e';
-import {createAudio} from './audio.js?v=77f9ea4e4a11669e';
-import {fresh,mark,undo,won,restore,solve} from './core.js?v=77f9ea4e4a11669e';
-import {analyze} from './deduction.js?v=77f9ea4e4a11669e';
-import {fallbackFor,signature} from './progression.js?v=77f9ea4e4a11669e';
-import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=77f9ea4e4a11669e';
+import {mountCoinReward} from './coin-ui.js?v=09c0f56a41bdf7e7';
+import {createEndlessQueue} from './endless-queue.js?v=09c0f56a41bdf7e7';
+import {mountTitle} from './title.js?v=09c0f56a41bdf7e7';
+import {mountWorld} from './world-ui.js?v=09c0f56a41bdf7e7';
+import {createWorldStore} from './world-store.js?v=09c0f56a41bdf7e7';
+import {completeNormal,completeDaily,saveDailyGame,balance,tickResident} from './economy.js?v=09c0f56a41bdf7e7';
+import {tapController} from './interaction.js?v=09c0f56a41bdf7e7';
+import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=09c0f56a41bdf7e7';
+import {createAudio} from './audio.js?v=09c0f56a41bdf7e7';
+import {fresh,mark,undo,won,restore,solve} from './core.js?v=09c0f56a41bdf7e7';
+import {analyze} from './deduction.js?v=09c0f56a41bdf7e7';
+import {fallbackFor,signature} from './progression.js?v=09c0f56a41bdf7e7';
+import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=09c0f56a41bdf7e7';
 const $=id=>document.getElementById(id),lp=new URLSearchParams(location.search).get('mode')==='lp';
 const key=lp?'komorebi-lp-v1':'komorebi-v1',tutorialKey='komorebi-tutorial-v3',collectionKey=key+'-collection-v3';
 const audio=createAudio(key);
+const coinReward=mountCoinReward({dialog:$('celebration'),audio});let normalReceiptPending=false;
 function syncAudio(){for(const name of ['bgm','se']){$(name+'-volume').value=Math.round(audio.settings[name]*100);$(name+'-value').textContent=Math.round(audio.settings[name]*100)+'%';}const on=audio.settings.bgm>0||audio.settings.se>0;$('sound').checked=on;$('title-sound').checked=on;}
 function enableAudio(feedback=false){return audio.activate({feedback});}
 for(const name of ['bgm','se'])$(name+'-volume').oninput=()=>{audio.set(name,Number($(name+'-volume').value)/100);syncAudio();if(audio.settings.bgm>0||audio.settings.se>0)enableAudio(name==='se'&&audio.settings.se>0);};
@@ -21,7 +23,7 @@ $('sound').onchange=()=>masterSound($('sound').checked);$('title-sound').onchang
 audio.subscribe(status=>{const retry=['blocked','paused'].includes(status),copy={off:'音はオフです',waiting:'最初の操作で音が始まります',starting:'音を開始しています…',playing:'音を再生中',paused:'音が中断されました',blocked:'音を開始できませんでした。再開を押してください',unsupported:'この環境では音声を再生できません'}[status];$('audio-status').textContent=copy;$('title-audio-status').textContent=copy;$('audio-resume').hidden=!retry;$('title-audio-resume').hidden=!retry;});syncAudio();
 
 const palette=['#F4D58F','#A5D9BE','#C9B9E3','#ADD8E5','#F3B7AA','#D4DFA2','#B5C5ED','#EBD0B2'];
-const catalog=await fetch('./catalog.json?v=77f9ea4e4a11669e').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
+const catalog=await fetch('./catalog.json?v=09c0f56a41bdf7e7').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
 let titleUI=null;
 let activeDaily=null;
 let rewardTimer=null,rewardId='',inGame=lp,input=null,hintPhase=0,hintStep=null,hintContext=[];
@@ -92,27 +94,27 @@ function playTap(i,action='double'){
  g=mark(g,i,value);resetHint();save();render();sound(value===1?'place':value===0?'remove':'mark');if(won(g))complete();else message(value===0?'マークを消しました。空きマスは2回タップでハム、1回で除外。':value===3?'仮置きメモです。タップで消してから、通常操作で置き直せます。':value===2?'ここは除外。もう1回タップ、またはここからなぞると解除。':'いい居場所だね。ぼくの席は広めにね。');
 }
 async function start(stage){if(busy)return;input?.reset();busy=true;message('次のおへやを準備中…');if(g)render();if(stage>60){try{const chosen=await endless.take(stage);g=fresh(chosen.board,chosen.seed,stage);g.hintsUsed=0;g.generatorVersion=3;recent.push(signature(g.board));winFor='';resetHint();save();message('新しいおへや。ひとつずつ、手がかりをつなごう。');endless.prefetch(stage+1);}catch{message('新しい問題を準備できませんでした。少し待って、もう一度お試しください。');$('generation-retry').hidden=false;$('generation-retry').onclick=()=>{$('generation-retry').hidden=true;void start(stage);};}finally{busy=false;render();updateTitle();}return;}const seed=crypto.getRandomValues(new Uint32Array(1))[0];
- const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=77f9ea4e4a11669e',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
+ const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=09c0f56a41bdf7e7',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
  const chosen=result||fallbackFor(seed,stage,catalog,recent);g=fresh(chosen.board,seed,stage);g.hintsUsed=0;g.generatorVersion=2;recent.push(signature(g.board));if(stage>=60)endless.prefetch(stage+1);busy=false;winFor='';resetHint();save();render();if(tut.done)message(stage>60?'ここからは延長戦。難しさの上限は同じ、新しい盤面です。':'まずは、小さいおへやの候補を見てみよう。');}
 function collectionInfo(){return {count:collection.completed.length,unlocked:roomCount(collection)};}
 function nextLabel(){if(activeDaily)return '日替わりへ';return lp?'本編でつづける':`ステージ${g.stage+1}へ`;}
 let showTimers=[];
-function clearShow(){showTimers.forEach(clearTimeout);showTimers=[];clearTimeout(rewardTimer);rewardTimer=null;audio.cancelCelebration();document.querySelector('.app').classList.remove('clear-wave');}
+function clearShow(){coinReward.stop();showTimers.forEach(clearTimeout);showTimers=[];clearTimeout(rewardTimer);rewardTimer=null;audio.cancelCelebration();document.querySelector('.app').classList.remove('clear-wave');}
 function setShowPhase(phase){$('celebration').dataset.phase=phase;if(['burst','pose','photo'].includes(phase)){$('reward-stage').classList.add('revealed');$('celebration').classList.add('fanfare');}if(phase==='photo'){$('reward-stage').classList.add('installed');$('skip-reward').hidden=true;collection.revealed=rewardId;save();}}
 function installReward(){setShowPhase('photo');}
 function revealReward(skip=false){clearShow();setShowPhase('photo');if($('celebration').open)$('next').focus({preventScroll:true});}
 function playShow(special){
  clearShow();document.querySelector('.app').classList.add('clear-wave');setShowPhase('preview');audio.effect('announce');
- const phases=special?[[350,'rise','rise1'],[1150,'climb1','rise1'],[1800,'climb2','rise2'],[2450,'climb3','quiet'],[3300,'hold','quiet'],[4300,'burst','crown'],[5100,'pose','pose'],[6200,'photo','mark']]:[[200,'rise','rise1'],[650,'climb1','rise1'],[1100,'climb2','rise2'],[1450,'climb3','quiet'],[1750,'hold','quiet'],[2000,'burst','open'],[2500,'pose','pose'],[3300,'photo','mark']];
+ const phases=[[120,'rise','rise1'],[350,'climb1','rise1'],[560,'climb2','rise2'],[780,'climb3','quiet'],[960,'hold','quiet'],[1150,'burst','pose'],[1850,'pose','mark'],[2700,'photo','mark']];
  for(const [ms,phase,sound] of phases)showTimers.push(setTimeout(()=>{setShowPhase(phase);if(sound==='quiet')audio.cancelCelebration();else if(sound==='crown')showTimers.push(setTimeout(()=>audio.effect('open'),390));else audio.effect(sound);},ms));
 }
 
-async function advanceStage(){if(activeDaily){showTitle();void worldUI.open('daily');return;}if(busy)return;input?.reset();clearShow();document.querySelectorAll('dialog[open]').forEach(d=>d.close());if(g&&won(g)){if(lp){location.href='./';return;}inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(g.stage+1);}else enterGame();}
-function complete(){
+async function advanceStage(){if(normalReceiptPending)return;if(!lp&&!activeDaily&&g&&won(g)){let received=false;try{received=worldReady&&Object.hasOwn(worldStore.read()?.normalClaims||{},String(g.stage)+':'+g.seed);}catch{}if(!received){inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;winFor='';await complete();return;}}if(activeDaily){showTitle();void worldUI.open('daily');return;}if(busy)return;input?.reset();clearShow();document.querySelectorAll('dialog[open]').forEach(d=>d.close());if(g&&won(g)){if(lp){location.href='./';return;}inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(g.stage+1);}else enterGame();}
+async function complete(){
  if(activeDaily){if(winFor===activeDaily.id)return;winFor=activeDaily.id;const id=activeDaily.id,snapshot=JSON.parse(JSON.stringify(g));input?.reset();let earned=0;void worldStore.transact(w=>{const next=completeDaily(w,id,snapshot);earned=balance(next)-balance(w);return next;}).then(async()=>{showTitle();await worldUI.dailyDone(earned?'クリア！ '+earned+'コインを受け取りました。':'もう一度クリア！ この問題のコインは受け取り済みです。');}).catch(()=>{winFor='';message('保存できませんでした。日替わりを開き直して、もう一度受け取ってください。');});return;}
 
  const id=String(g.stage)+':'+g.seed;const before=roomCount(collection);if(!collection.completed.includes(id)){collection.completed.push(id);save();}if(winFor===id)return;winFor=id;rewardId=id;input?.reset();render();
- if(worldReady){const completedGame=JSON.parse(JSON.stringify(g)),unlocked=roomCount(collection);void worldStore.transact(w=>completeNormal(w,completedGame,unlocked)).catch(()=>{storageOk=false;message('コインを保存できませんでした。データを消さずに再起動してください。');});}
+ const receipt={before:0,after:0,amount:0,saved:worldReady||lp};if(worldReady){normalReceiptPending=true;try{const completedGame=JSON.parse(JSON.stringify(g)),unlocked=roomCount(collection);await worldStore.transact(w=>{receipt.before=balance(w);const next=completeNormal(w,completedGame,unlocked);receipt.after=balance(next);receipt.amount=receipt.after-receipt.before;return next;});}catch{receipt.saved=false;receipt.amount=0;receipt.after=receipt.before;storageOk=false;}finally{normalReceiptPending=false;}}if(!inGame||activeDaily||String(g.stage)+':'+g.seed!==id)return;
  const count=collection.completed.indexOf(id)+1,look=rewardFor(count),after=roomCount(collection),isNew=milestones.includes(count)&&milestones.indexOf(count)>=(collection.legacyFurniture||0),item=furniture[Math.max(0,after-1)];
  const special=g.hintsUsed===0||g.stage===60;$('celebration').classList.toggle('special',special);$('celebration').classList.toggle('milestone',isNew);$('win-title').textContent=g.stage===60?'60ステージ突破！':g.hintsUsed===0?'ノーヒント、達成！':'おみごと！';$('win-copy').textContent='ステージ '+g.stage+' クリア'+(g.hintsUsed===0?' · ノーヒントで解けた！':' · おみごと！');
  $('reward-title').textContent=isNew?item.name:look.title;$('reward-copy').textContent=special?'「かしこいのはきみ。主役は、ぼく。」':'「'+look.quote+'」';$('gift-label').textContent=isNew?'家具を獲得 · '+item.name:special?'ひらめきに、王冠を。':'ハムも拍手しています';
@@ -120,7 +122,7 @@ function complete(){
  $('reward-object').innerHTML=showCast(special);$('capsule-art').innerHTML=capsule();$('reward-ham').innerHTML=hamster(true);$('reward-home').innerHTML=roomScene(after,true);
  $('next').textContent=nextLabel();$('reward-stage').classList.remove('revealed','installed');$('reward-details').hidden=false;$('skip-reward').hidden=false;$('celebration').classList.remove('fanfare');
  if(!$('celebration').open)$('celebration').showModal();clearTimeout(rewardTimer);message('クリア！ ハムが拍手を待っています。');
- if(collection.revealed===id||matchMedia('(prefers-reduced-motion: reduce)').matches)revealReward(true);else playShow(special);
+ coinReward.prepare(receipt,()=>{winFor='';void complete();});if(collection.revealed===id||matchMedia('(prefers-reduced-motion: reduce)').matches)revealReward(true);else playShow(special);coinReward.start();
 }
 function showCollection(){if(!lp){input?.reset();void worldUI.open('home');return;}const c=collectionInfo();$('collection-room').innerHTML=roomScene(c.unlocked,true);$('collection-description').textContent=`家具 ${c.unlocked} / 12 ・ クリア ${c.count} 回${c.unlocked===12?'。このお家の家具は完成！ パズルはこの先も続きます。':''}`;$('collection-items').innerHTML=furniture.map((item,i)=>`<div class="collectible ${i<c.unlocked?'unlocked':''}">${i<c.unlocked?furnitureArt(i):'<span class="locked-gift">?</span>'}<strong>${i<c.unlocked?item.name:'おたのしみ'}</strong><small>${i<c.unlocked?item.note:milestones[i]+'回クリアで届く'}</small></div>`).join('');const index=Math.max(0,c.count-1);$('home-story').hidden=true;$('home-story-title').textContent=episodes[index%4].title;$('home-story-art').innerHTML=episodeScene(index);$('home-story-art').setAttribute('aria-label',episodes[index%4].description);$('house-next').textContent=g&&won(g)?nextLabel():'パズルへ';$('collection-dialog').showModal();}
 function showTitle(){input?.reset();save();if(activeDaily){activeDaily=null;g=restore(localStorage.getItem(key)||'');}document.querySelectorAll('dialog[open]').forEach(d=>d.close());inGame=false;audio.setScene(true);$('title-screen').hidden=false;document.querySelector('.app').hidden=true;clearTimeout(lpTimer);lpTimer=null;updateTitle();$('title-play').focus();}

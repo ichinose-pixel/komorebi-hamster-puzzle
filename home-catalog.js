@@ -1,4 +1,4 @@
-import {LEGACY_SLOTS} from './economy.js?v=77f9ea4e4a11669e';
+import {LEGACY_SLOTS} from './economy.js?v=09c0f56a41bdf7e7';
 export const SLOT_LABELS={rug:'まんなかの床',table:'お茶の場所',seat:'くつろぎ席',light:'窓辺の灯り',plant:'緑の場所',snack:'おやつ置き場',guest:'お友だち席',portrait:'壁の飾り',phone:'小さな棚',flags:'上の壁',shelf:'奥の棚',crown:'とっておきの棚',feature:'特等席'};
 export const ROOMS=[{id:'main',name:'はじまりのリビング',slots:[...LEGACY_SLOTS,'feature']},{id:'annex',name:'静かな離れ',slots:['rug','seat','light','plant','feature']},{id:'garden',name:'ガラス屋根の庭',slots:['rug','table','plant','feature']}];
 export const SHOP={rooms:ROOMS,items:[

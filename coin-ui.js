@@ -1,0 +1,21 @@
+export const coinIcon=()=>'<span class="ham-coin" aria-hidden="true"><i></i></span>';
+export function mountCoinReward({dialog,audio}){
+ const backdrop=document.createElement('div');backdrop.className='clear-backdrop';for(const e of dialog.querySelectorAll('.show-curtain,.show-orbit,.show-near,.show-halo,.show-sparkles,.show-foreground'))backdrop.append(e);dialog.prepend(backdrop);
+ const heading=document.createElement('header');heading.className='clear-heading';
+ const eyebrow=dialog.querySelector(':scope > .eyebrow'),title=dialog.querySelector('#win-title'),copy=dialog.querySelector('#win-copy'),ribbon=dialog.querySelector('.show-ribbon');
+ const banner=document.createElement('div');banner.className='clear-banner';banner.append(ribbon,title);heading.append(eyebrow,banner,copy);
+ const receipt=document.createElement('section');receipt.className='coin-receipt';receipt.setAttribute('aria-label','クリア報酬');
+ receipt.innerHTML=`<div class="receipt-wallet"><span>もっているコイン</span><strong id="clear-wallet">${coinIcon()}<span id="clear-balance"></span></strong></div><div class="receipt-award"><span id="coin-caption"></span><strong id="coin-amount"></strong><div id="coin-cluster" aria-hidden="true"></div></div><p id="coin-feedback" role="status" aria-live="polite"></p><button id="coin-retry" class="secondary" hidden>もう一度保存する</button>`;
+ const layout=document.createElement('div');layout.className='clear-layout';layout.append(heading,receipt,dialog.querySelector('#reward-stage'),dialog.querySelector('#reward-details'));dialog.append(layout);
+ let timers=[],animations=[],before=0,after=0,amount=0,saved=true;const $=s=>dialog.querySelector(s),reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+ function stop(){timers.forEach(clearTimeout);timers=[];animations.forEach(a=>a.cancel());animations=[];dialog.querySelectorAll('.coin-flight').forEach(e=>e.remove());$('#clear-balance').textContent=String(after);receipt.classList.remove('coins-arriving');}
+ function prepare(result,retry){stop();({before,after,amount,saved}=result);receipt.dataset.state=!saved?'failed':amount>0?'earned':'received';$('#clear-balance').textContent=String(before);$('#coin-caption').textContent=!saved?'ごほうびを保存できませんでした':amount>0?'クリアのごほうび':'このステージのごほうび';$('#coin-amount').textContent=!saved?'未受取':amount>0?`+${amount}`:'受取済み';$('#coin-cluster').innerHTML=amount>0?Array.from({length:Math.min(amount,7)},coinIcon).join(''):'';$('#coin-feedback').textContent=!saved?'受取を保存してから、次のおへやへ。':amount>0?`${amount} コインを受け取りました。`:'コインはすでに所持数に入っています。';$('#coin-retry').hidden=saved;$('#coin-retry').onclick=retry;$('#next').disabled=!saved;}
+ function start(){if(!saved||amount<=0){$('#clear-balance').textContent=String(after);return;}if(reduce()){stop();return;}$('#clear-balance').textContent=String(before);
+  timers.push(setTimeout(()=>{const from=$('#coin-cluster').getBoundingClientRect(),target=$('#clear-wallet').getBoundingClientRect(),root=dialog.getBoundingClientRect(),count=Math.min(amount,7);audio.effect('coin-up');
+   for(let i=0;i<count;i++){const particle=document.createElement('span');particle.className='coin-flight';particle.innerHTML=coinIcon();dialog.append(particle);const x=from.left+from.width/2-root.left+(i-(count-1)/2)*25-15,y=from.top-root.top;particle.style.left=x+'px';particle.style.top=y+'px';const dx=target.left+target.width*.28-root.left-x-15,dy=target.top+target.height/2-root.top-y-15;
+    const a=particle.animate([{transform:'translate(0,0) scale(1)',opacity:0},{transform:`translate(${(i-(count-1)/2)*12}px,-24px) scale(1.12)`,opacity:1,offset:.18},{transform:`translate(${dx*.4}px,${Math.min(-55,dy-45)}px) rotateY(150deg)`,opacity:1,offset:.55},{transform:`translate(${dx}px,${dy}px) scale(.48) rotateY(360deg)`,opacity:0}],{duration:820,delay:i*85,easing:'cubic-bezier(.25,.55,.3,1)',fill:'both'});animations.push(a);a.onfinish=()=>{particle.remove();$('#clear-balance').textContent=String(before+Math.floor(amount*(i+1)/count));receipt.classList.remove('coins-arriving');void receipt.offsetWidth;receipt.classList.add('coins-arriving');audio.effect('coin-land');if(i===count-1)$('#clear-balance').textContent=String(after);};
+   }
+  },1050));
+ }
+ return {prepare,start,stop};
+}
