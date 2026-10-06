@@ -1,4 +1,4 @@
-import {hamster} from './art.js?v=6b507c7cf90ec9c4';
+import {hamster} from './art.js?v=77f9ea4e4a11669e';
 // Character seam: new approved designs replace this renderer; behavior IDs and furniture stay stable.
 export function resident(action='idle'){
  if(action==='ghost')return '<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M27 49Q15 24 35 24l11 10q16-7 28 0l10-10q21 0 9 26q17 27 1 59l-15-10-13 10-14-10-13 10q-22-20-12-60Z" fill="#FFF7E6" stroke="#B8B2AD" stroke-width="3"/><path d="M42 62h1m32 0h1m-22 15q6 6 12 0" stroke="#8E7B79" stroke-width="4" stroke-linecap="round"/><ellipse cx="34" cy="76" rx="7" ry="4" fill="#EEC6BF"/><ellipse cx="87" cy="76" rx="7" ry="4" fill="#EEC6BF"/></svg>';

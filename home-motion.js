@@ -1,4 +1,4 @@
-import {cheekHam} from './character.js?v=6b507c7cf90ec9c4';import {project} from './home-room.js?v=6b507c7cf90ec9c4';
+import {cheekHam} from './character.js?v=77f9ea4e4a11669e';import {project} from './home-room.js?v=77f9ea4e4a11669e';
 const inner=s=>s.replace(/^<svg[^>]*>|<\/svg>$/g,'');
 export function animateHome(scene){if(!scene)return()=>{};const route=JSON.parse(scene.dataset.route),actor=scene.querySelector('.room-actor'),layer=scene.querySelector('.room-objects'),reduce=matchMedia('(prefers-reduced-motion: reduce)'),start=performance.now();let frame,lastPose='';
  const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t),ease=t=>t*t*(3-2*t);

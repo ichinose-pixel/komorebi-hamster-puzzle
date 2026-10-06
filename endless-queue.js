@@ -1,0 +1,15 @@
+import {canonical,accepted,novel,remember,reserve} from './endless.js?v=77f9ea4e4a11669e';
+export function createEndlessQueue({catalog,storage,key,onError=()=>{}}){
+ const stateKey=key+'-endless-v1';let state={version:1,history:{boards:[],solutions:[],tactics:[]},queue:[]},pending=null,wanted=0;const waiters=new Set();const notify=()=>{for(const done of waiters)done();waiters.clear();};
+ const save=()=>storage.setItem(stateKey,JSON.stringify(state));
+ try{const raw=JSON.parse(storage.getItem(stateKey)||'null');if(raw?.version===1&&['boards','solutions','tactics'].every(k=>Array.isArray(raw.history?.[k])&&raw.history[k].every(v=>typeof v==='string'))&&Array.isArray(raw.queue)){state.history=raw.history;state.queue=raw.queue.filter(e=>Number.isSafeInteger(e.stage)&&e.stage>60&&Number.isSafeInteger(e.seed)&&accepted(e.board,e.stage));}}catch{onError();}
+ function historyWithQueue(){return state.queue.reduce((h,e)=>remember(h,e),state.history);}
+ function generate(stage,history){const seed=crypto.getRandomValues(new Uint32Array(1))[0];return new Promise((resolve,reject)=>{let worker,done=false;const finish=result=>{if(done)return;done=true;clearTimeout(timer);worker?.terminate();try{const chosen=result&&accepted(result.board,stage)&&novel(result.board,result,history)?result:reserve(seed,stage,catalog.endless,history);resolve({...chosen,stage,seed});}catch(e){reject(e);}};const timer=setTimeout(()=>finish(null),2500);try{worker=new Worker('./worker.js?v=77f9ea4e4a11669e',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({kind:'endless',seed,stage,catalog,history});}catch{finish(null);}});}
+ async function fill(start){for(let stage=start;stage<start+3;stage++){if(state.queue.some(e=>e.stage===stage))continue;const e=await generate(stage,historyWithQueue());state.queue.push(e);save();notify();}}
+ function prefetch(start){if(start<=60)return;wanted=start;if(pending)return;state.queue=state.queue.filter(e=>e.stage>=start&&e.stage<start+3);pending=fill(start).catch(()=>{}).finally(()=>{pending=null;notify();if(wanted!==start)prefetch(wanted);});}
+ return {prefetch,rememberCurrent(game,recent=[]){
+  if(!game)return;const sig=canonical(game.board);if(!state.history.boards.includes(sig)){const a=accepted(game.board,game.stage);if(game.stage>60&&a)state.history=remember(state.history,{board:game.board,...a});else state.history.boards.push(sig);}
+  for(const s of recent){const [n,r]=s.split(':');if(!r)continue;const b={n:Number(n),regions:r.split(',').map(Number)};if(b.n>=4&&b.n<=8&&b.regions.length===b.n*b.n){const k=canonical(b);if(!state.history.boards.includes(k))state.history.boards.push(k);}}
+  save();
+ },async take(stage){while(pending&&!state.queue.some(e=>e.stage===stage))await new Promise(resolve=>waiters.add(resolve));state.queue=state.queue.filter(e=>e.stage>=stage);let e=state.queue.find(e=>e.stage===stage);if(!e||!novel(e.board,e,state.history))e=await generate(stage,state.history);state.queue=state.queue.filter(x=>x.stage!==stage);state.history=remember(state.history,e);save();return e;}};
+}

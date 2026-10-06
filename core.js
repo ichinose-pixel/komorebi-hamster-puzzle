@@ -62,9 +62,9 @@ export function generate(seed       ,target=0,attempts=100)                     
   }
   if(!best)throw new Error('GENERATION_EXHAUSTED');return {board:best,score:bestScore,exact:bestScore===target};
 }
-                                                                                                                                          
+                                                                                                                                            
 export function fresh(board      ,seed       ,stage=1)     {return {version:1,rulesVersion:1,generatorVersion:1,seed,stage,board,marks:Array(board.n**2).fill(0),history:[]};}
 export function mark(g     ,cell       ,value       )      {if(!Number.isInteger(cell)||cell<0||cell>=g.marks.length||![0,1,2,3].includes(value))return g;const marks=[...g.marks];marks[cell]=value;return {...g,marks,history:[...g.history.slice(-99),g.marks]};}
 export function undo(g     )     {return g.history.length?{...g,marks:g.history.at(-1) ,history:g.history.slice(0,-1)}:g;}
 export function won(g     )        {const p=g.marks.flatMap((v,i)=>v===1?[i]:[]);return p.length===g.board.n&&p.every((a,i)=>p.slice(0,i).every(c=>!conflict(g.board,a,c)));}
-export function restore(raw       )          {try{const g=JSON.parse(raw);if(g.version!==1||g.rulesVersion!==1||![1,2].includes(g.generatorVersion)||!Number.isSafeInteger(g.seed)||!Number.isSafeInteger(g.stage)||g.stage<1||g.stage>1000000||!validBoard(g.board)||solve(g.board).length!==1)return null;const valid=(a        )=>Array.isArray(a)&&a.length===g.board.n**2&&a.every(v=>[0,1,2,3].includes(v));if(!valid(g.marks)||!Array.isArray(g.history)||g.history.length>100||!g.history.every(valid))return null;return g;}catch{return null;}}
+export function restore(raw       )          {try{const g=JSON.parse(raw);if(g.version!==1||g.rulesVersion!==1||![1,2,3].includes(g.generatorVersion)||!Number.isSafeInteger(g.seed)||!Number.isSafeInteger(g.stage)||g.stage<1||g.stage>1000000||!validBoard(g.board)||solve(g.board).length!==1)return null;const valid=(a        )=>Array.isArray(a)&&a.length===g.board.n**2&&a.every(v=>[0,1,2,3].includes(v));if(!valid(g.marks)||!Array.isArray(g.history)||g.history.length>100||!g.history.every(valid))return null;return g;}catch{return null;}}

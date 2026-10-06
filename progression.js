@@ -1,14 +1,17 @@
-import {rng,solve,validBoard,          } from './core.js?v=6b507c7cf90ec9c4';
-import {analyze} from './deduction.js?v=6b507c7cf90ec9c4';
+import {generateEndless,reserve,canonical,endlessBand,                              } from './endless.js?v=77f9ea4e4a11669e';
+import {rng,solve,validBoard,          } from './core.js?v=77f9ea4e4a11669e';
+import {analyze} from './deduction.js?v=77f9ea4e4a11669e';
                                                                                                    
-                                                                                  
-export function targetFor(stage       ,catalog        ){const index=Math.min(catalog.stages.length-1,Math.max(0,stage-1));return {...catalog.stages[index],endless:stage>catalog.stages.length};}
+                                                                                                          
+export function targetFor(stage       ,catalog        ){if(stage>60){if(!catalog.endless?.length)throw Error('MISSING_ENDLESS_BANK');const band=endlessBand(stage);return {n:7,target:band.min,min:band.min,max:band.max,chain:band.chain,entries:catalog.endless.filter(e=>e.score>=band.min&&e.score<=band.max),endless:true};}const index=Math.max(0,stage-1);return {...catalog.stages[index],endless:false};}
 export function signature(b      )       {const map=new Map               ();return b.n+':'+b.regions.map(x=>{if(!map.has(x))map.set(x,map.size);return map.get(x);}).join(',');}
 export function fallbackFor(seed       ,stage       ,catalog        ,recent         =[]){
+ if(stage>60){if(!catalog.endless?.length)throw Error('MISSING_ENDLESS_BANK');return reserve(seed,stage,catalog.endless,{boards:recent.map(s=>{const [n,r]=s.split(':');return canonical({n:Number(n),regions:r.split(',').map(Number)});}),solutions:[],tactics:[]});}
  const target=targetFor(stage,catalog);const options=target.entries.filter(x=>!recent.includes(signature(x.board)));const pool=options.length?options:target.entries;
  const entry=pool[Math.floor(rng(seed)()*pool.length)];return {...entry,source:'verified-bank',repeated:!options.length};
 }
 export function generateStage(seed       ,stage       ,catalog        ,recent         =[],attempts=160){
+ if(stage>60){if(!catalog.endless?.length)throw Error('MISSING_ENDLESS_BANK');const h        ={boards:recent.map(s=>{const [n,r]=s.split(':');return canonical({n:Number(n),regions:r.split(',').map(Number)});}),solutions:[],tactics:[]};return generateEndless(seed,stage,catalog.endless,h,Math.max(attempts,2000));}
  const base=fallbackFor(seed,stage,catalog,recent),target=targetFor(stage,catalog),random=rng(seed^0xa511e9b3);let board=base.board,changes=0;
  for(let attempt=0;attempt<attempts;attempt++){
   const i=Math.floor(random()*board.regions.length),n=board.n;

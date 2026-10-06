@@ -1,6 +1,6 @@
-import {ROOMS,SHOP} from './home-catalog.js?v=6b507c7cf90ec9c4';
-import {furnitureArt} from './art.js?v=6b507c7cf90ec9c4';
-import {resident} from './resident.js?v=6b507c7cf90ec9c4';
+import {ROOMS,SHOP} from './home-catalog.js?v=77f9ea4e4a11669e';
+import {furnitureArt} from './art.js?v=77f9ea4e4a11669e';
+import {resident} from './resident.js?v=77f9ea4e4a11669e';
 export const project=(x,y,z=0)=>[350+.86*(x-y),250+.43*(x+y)-z];
 const pt=(x,y,z=0)=>project(x,y,z).map(n=>n.toFixed(2)).join(',');
 const poly=(points,fill,stroke='#91745C',width=1.5)=>`<polygon points="${points.map(p=>pt(...p)).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${width}" stroke-linejoin="round"/>`;

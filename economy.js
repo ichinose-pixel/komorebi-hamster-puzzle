@@ -1,14 +1,15 @@
-import {restore,won,         } from './core.js?v=6b507c7cf90ec9c4';
-import {signature,            } from './progression.js?v=6b507c7cf90ec9c4';
-import {createDaily,validateBundle,validDate,                           } from './daily.js?v=6b507c7cf90ec9c4';
-import {initialCare,advanceCare,careAction,pauseCare,welcomeCare,reviveCare,validateCare,         } from './care.js?v=6b507c7cf90ec9c4';
+import {claimLogin,validateLogin,                } from './login.js?v=77f9ea4e4a11669e';
+import {restore,won,         } from './core.js?v=77f9ea4e4a11669e';
+import {signature,            } from './progression.js?v=77f9ea4e4a11669e';
+import {createDaily,validateBundle,validDate,                           } from './daily.js?v=77f9ea4e4a11669e';
+import {initialCare,advanceCare,careAction,pauseCare,welcomeCare,reviveCare,validateCare,         } from './care.js?v=77f9ea4e4a11669e';
 export const WORLD_KEY='komorebi-v1-world-v1';
 export const TEST_BALANCE={normal:3,daily:{easy:10,standard:15,hard:20}}         ;
                                                                        
 export const FREE_POLICY           ={id:'free-v1',numerator:1,denominator:1};
 export const LEGACY_SLOTS=['rug','table','seat','light','plant','snack','guest','portrait','phone','flags','shelf','crown'];
                                          
-                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                             
                                                                                                                              
                                                       
                                                                   
@@ -24,7 +25,7 @@ export function migrateWorld(oldCollection        )      {
  const oldCount=c?.version===2?Math.max(Math.min(12,Math.max(0,Number(c.legacyFurniture)||0)),milestones.filter(n=>n<=earnedCount).length):Math.min(12,earnedCount);
  return {version:1,revision:0,normalClaims:Object.fromEntries(completed.map(id=>[id,{amount:0,policy:'legacy-no-retroactive-coins'}])),dailyClaims:{},days:{},highestDate:'',ownedLegacy:Array.from({length:Math.floor(oldCount)},(_,i)=>`legacy-${i}`),purchases:{},rooms:['main'],placements:Object.fromEntries(Array.from({length:Math.floor(oldCount)},(_,i)=>[`main/${LEGACY_SLOTS[i]}`,`legacy-${i}`]))};
 }
-export function balance(w      )       {const sum=Object.values(w.normalClaims).concat(Object.values(w.dailyClaims)).reduce((n,c)=>n+c.amount,0)-Object.values(w.purchases).reduce((n,p)=>n+p.price,0);if(!safeInt(sum))throw Error('INVALID_BALANCE');return sum;}
+export function balance(w      )       {const sum=Object.values(w.loginClaims||{}).reduce((n,c)=>n+c.amount,0)+Object.values(w.normalClaims).concat(Object.values(w.dailyClaims)).reduce((n,c)=>n+c.amount,0)-Object.values(w.purchases).reduce((n,p)=>n+p.price,0);if(!safeInt(sum))throw Error('INVALID_BALANCE');return sum;}
 export function validateWorld(w      )     {
  if(w?.version!==1||!safeInt(w.revision)||![w.normalClaims,w.dailyClaims,w.days,w.purchases,w.placements].every(dict)||!Array.isArray(w.rooms)||!w.rooms.includes('main')||w.rooms.some(x=>!safeId(x))||!Array.isArray(w.ownedLegacy)||w.ownedLegacy.some(x=>!/^legacy-(?:[0-9]|1[01])$/.test(x))||new Set(w.rooms).size!==w.rooms.length||new Set(w.ownedLegacy).size!==w.ownedLegacy.length||w.highestDate!==''&&!validDate(w.highestDate))throw Error('INVALID_WORLD');
  for(const [id,c] of Object.entries(w.normalClaims)){if(!/^\d+:\d+$/.test(id)||!safeInt(c.amount)||typeof c.policy!=='string')throw Error('INVALID_NORMAL_CLAIM');}
@@ -33,6 +34,7 @@ export function validateWorld(w      )     {
  for(const [id,p] of Object.entries(w.purchases)){if(!safeId(id)||!safeInt(p.price)||!['furniture','expansion'].includes(p.kind))throw Error('INVALID_PURCHASE');}
  for(const [location,id] of Object.entries(w.placements)){if(typeof id!=='string'||(!w.ownedLegacy.includes(id)&&w.purchases[id]?.kind!=='furniture')||location.split('/').length!==2||!w.rooms.includes(location.split('/')[0])||!safeId(location.split('/')[1]))throw Error('INVALID_PLACEMENT');}
  if(new Set(Object.values(w.placements)).size!==Object.values(w.placements).length)throw Error('DUPLICATE_PLACEMENT');balance(w);
+ if(w.loginClaims)validateLogin(w.loginClaims);
  if(w.care)validateCare(w.care);
  if(w.rareDays){if(!dict(w.rareDays))throw Error('INVALID_RARE_DAYS');for(const [day,n] of Object.entries(w.rareDays)){if(!validDate(day)||n!==1||!['easy','standard','hard'].some(level=>[0,1,2].every(slot=>Object.hasOwn(w.dailyClaims,`${day}:${level}:${slot}`))))throw Error('INVALID_RARE_DAY');}}
  if(rareBalance(w)<0)throw Error('INVALID_RARE_BALANCE');
@@ -65,3 +67,5 @@ export function tendResident(w      ,kind               ,now       )      {const
 export function restResident(w      ,paused        ,now       )      {const next=clone(w);next.care=pauseCare(w.care||initialCare(now),paused,now);return changed(next);}
 export function welcomeResident(w      ,now       )      {const next=clone(w);next.care=welcomeCare(w.care||initialCare(now),now);return changed(next);}
 export function returnResident(w      ,id       ,now       )      {const next=clone(w);next.care=reviveCare(w.care||initialCare(now),id,rareBalance(w),now);return changed(next);}
+
+export function receiveLogin(w      ,date       )      {const claims=claimLogin(w.loginClaims,date);if(claims===w.loginClaims||!Object.keys(claims).length)return w;const next=clone(w);next.loginClaims=claims;return changed(next);}
