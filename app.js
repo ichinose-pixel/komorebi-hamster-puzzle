@@ -1,16 +1,16 @@
-import {mountCoinReward} from './coin-ui.js?v=09c0f56a41bdf7e7';
-import {createEndlessQueue} from './endless-queue.js?v=09c0f56a41bdf7e7';
-import {mountTitle} from './title.js?v=09c0f56a41bdf7e7';
-import {mountWorld} from './world-ui.js?v=09c0f56a41bdf7e7';
-import {createWorldStore} from './world-store.js?v=09c0f56a41bdf7e7';
-import {completeNormal,completeDaily,saveDailyGame,balance,tickResident} from './economy.js?v=09c0f56a41bdf7e7';
-import {tapController} from './interaction.js?v=09c0f56a41bdf7e7';
-import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=09c0f56a41bdf7e7';
-import {createAudio} from './audio.js?v=09c0f56a41bdf7e7';
-import {fresh,mark,undo,won,restore,solve} from './core.js?v=09c0f56a41bdf7e7';
-import {analyze} from './deduction.js?v=09c0f56a41bdf7e7';
-import {fallbackFor,signature} from './progression.js?v=09c0f56a41bdf7e7';
-import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=09c0f56a41bdf7e7';
+import {mountCoinReward} from './coin-ui.js?v=be6f9a6a74417ecf';
+import {createEndlessQueue} from './endless-queue.js?v=be6f9a6a74417ecf';
+import {mountTitle} from './title.js?v=be6f9a6a74417ecf';
+import {mountWorld} from './world-ui.js?v=be6f9a6a74417ecf';
+import {createWorldStore} from './world-store.js?v=be6f9a6a74417ecf';
+import {completeNormal,completeDaily,saveDailyGame,balance,tickResident} from './economy.js?v=be6f9a6a74417ecf';
+import {tapController} from './interaction.js?v=be6f9a6a74417ecf';
+import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=be6f9a6a74417ecf';
+import {createAudio} from './audio.js?v=be6f9a6a74417ecf';
+import {fresh,mark,undo,won,restore,solve} from './core.js?v=be6f9a6a74417ecf';
+import {analyze} from './deduction.js?v=be6f9a6a74417ecf';
+import {fallbackFor,signature} from './progression.js?v=be6f9a6a74417ecf';
+import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=be6f9a6a74417ecf';
 const $=id=>document.getElementById(id),lp=new URLSearchParams(location.search).get('mode')==='lp';
 const key=lp?'komorebi-lp-v1':'komorebi-v1',tutorialKey='komorebi-tutorial-v3',collectionKey=key+'-collection-v3';
 const audio=createAudio(key);
@@ -23,7 +23,7 @@ $('sound').onchange=()=>masterSound($('sound').checked);$('title-sound').onchang
 audio.subscribe(status=>{const retry=['blocked','paused'].includes(status),copy={off:'音はオフです',waiting:'最初の操作で音が始まります',starting:'音を開始しています…',playing:'音を再生中',paused:'音が中断されました',blocked:'音を開始できませんでした。再開を押してください',unsupported:'この環境では音声を再生できません'}[status];$('audio-status').textContent=copy;$('title-audio-status').textContent=copy;$('audio-resume').hidden=!retry;$('title-audio-resume').hidden=!retry;});syncAudio();
 
 const palette=['#F4D58F','#A5D9BE','#C9B9E3','#ADD8E5','#F3B7AA','#D4DFA2','#B5C5ED','#EBD0B2'];
-const catalog=await fetch('./catalog.json?v=09c0f56a41bdf7e7').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
+const catalog=await fetch('./catalog.json?v=be6f9a6a74417ecf').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
 let titleUI=null;
 let activeDaily=null;
 let rewardTimer=null,rewardId='',inGame=lp,input=null,hintPhase=0,hintStep=null,hintContext=[];
@@ -94,7 +94,7 @@ function playTap(i,action='double'){
  g=mark(g,i,value);resetHint();save();render();sound(value===1?'place':value===0?'remove':'mark');if(won(g))complete();else message(value===0?'マークを消しました。空きマスは2回タップでハム、1回で除外。':value===3?'仮置きメモです。タップで消してから、通常操作で置き直せます。':value===2?'ここは除外。もう1回タップ、またはここからなぞると解除。':'いい居場所だね。ぼくの席は広めにね。');
 }
 async function start(stage){if(busy)return;input?.reset();busy=true;message('次のおへやを準備中…');if(g)render();if(stage>60){try{const chosen=await endless.take(stage);g=fresh(chosen.board,chosen.seed,stage);g.hintsUsed=0;g.generatorVersion=3;recent.push(signature(g.board));winFor='';resetHint();save();message('新しいおへや。ひとつずつ、手がかりをつなごう。');endless.prefetch(stage+1);}catch{message('新しい問題を準備できませんでした。少し待って、もう一度お試しください。');$('generation-retry').hidden=false;$('generation-retry').onclick=()=>{$('generation-retry').hidden=true;void start(stage);};}finally{busy=false;render();updateTitle();}return;}const seed=crypto.getRandomValues(new Uint32Array(1))[0];
- const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=09c0f56a41bdf7e7',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
+ const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=be6f9a6a74417ecf',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
  const chosen=result||fallbackFor(seed,stage,catalog,recent);g=fresh(chosen.board,seed,stage);g.hintsUsed=0;g.generatorVersion=2;recent.push(signature(g.board));if(stage>=60)endless.prefetch(stage+1);busy=false;winFor='';resetHint();save();render();if(tut.done)message(stage>60?'ここからは延長戦。難しさの上限は同じ、新しい盤面です。':'まずは、小さいおへやの候補を見てみよう。');}
 function collectionInfo(){return {count:collection.completed.length,unlocked:roomCount(collection)};}
 function nextLabel(){if(activeDaily)return '日替わりへ';return lp?'本編でつづける':`ステージ${g.stage+1}へ`;}

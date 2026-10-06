@@ -1,7 +1,7 @@
-import {coinIcon} from './coin-ui.js?v=09c0f56a41bdf7e7';
-import {localDate} from './daily.js?v=09c0f56a41bdf7e7';
-import {loginStatus,LOGIN_REWARDS} from './login.js?v=09c0f56a41bdf7e7';
-import {receiveLogin,balance} from './economy.js?v=09c0f56a41bdf7e7';
+import {coinIcon} from './coin-ui.js?v=be6f9a6a74417ecf';
+import {localDate} from './daily.js?v=be6f9a6a74417ecf';
+import {loginStatus,LOGIN_REWARDS} from './login.js?v=be6f9a6a74417ecf';
+import {receiveLogin,balance} from './economy.js?v=be6f9a6a74417ecf';
 export function mountTitle({store,ready,onDaily,onHome}){
  const $=id=>document.getElementById(id),dialog=document.createElement('dialog');dialog.id='login-dialog';dialog.setAttribute('aria-labelledby','login-heading');
  dialog.innerHTML='<button id="login-close" class="icon-button close" aria-label="閉じる">×</button><p class="eyebrow">A LITTLE WELCOME</p><h2 id="login-heading">今日も、いらっしゃい。</h2><p class="login-intro">遊びに来た日に、ひとつずつ。<br>お休みしても、続きから。</p><ol id="login-days" class="login-days"></ol><p id="login-wallet"></p><button id="login-claim" class="primary wide"></button><p id="login-feedback" role="status" aria-live="polite"></p><p class="login-note">7回受け取ると、また1日目へ。</p>';document.body.append(dialog);

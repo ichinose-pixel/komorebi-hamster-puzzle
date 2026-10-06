@@ -1,4 +1,4 @@
-import {WORLD_KEY,migrateWorld,parseWorld,validateWorld} from './economy.js?v=09c0f56a41bdf7e7';
+import {WORLD_KEY,migrateWorld,parseWorld,validateWorld} from './economy.js?v=be6f9a6a74417ecf';
 // A whole world snapshot is committed once. Callers never publish a balance before save succeeds.
 // Web Locks serialize tabs. A host without Web Locks must enforce a single active writer.
 export function createWorldStore(storage,{lock=globalThis.navigator?.locks,key=WORLD_KEY}={}){

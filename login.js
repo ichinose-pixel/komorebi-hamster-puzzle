@@ -1,4 +1,4 @@
-import {validDate} from './daily.js?v=09c0f56a41bdf7e7';
+import {validDate} from './daily.js?v=be6f9a6a74417ecf';
 export const LOGIN_REWARDS=[3,3,5,5,7,7,10]         ;
                                                                   
 export function validateLogin(ledger            ){

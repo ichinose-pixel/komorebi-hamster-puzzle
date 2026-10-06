@@ -1,5 +1,5 @@
-import {fresh,restore,         } from './core.js?v=09c0f56a41bdf7e7';
-import {generateStage,signature,            } from './progression.js?v=09c0f56a41bdf7e7';
+import {fresh,restore,         } from './core.js?v=be6f9a6a74417ecf';
+import {generateStage,signature,            } from './progression.js?v=be6f9a6a74417ecf';
 export const DAILY_VERSION=1;
 export const LEVELS=['easy','standard','hard']         ;
                                         

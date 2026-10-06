@@ -1,8 +1,8 @@
-import {coinIcon} from './coin-ui.js?v=09c0f56a41bdf7e7';
-import {animateHome} from './home-motion.js?v=09c0f56a41bdf7e7';
-import {carePanel,hatchMarkup} from './care-ui.js?v=09c0f56a41bdf7e7';
-import {balance,openDay,buy,place,removePlacement,LEGACY_SLOTS,TEST_BALANCE,tickResident,tendResident,restResident,welcomeResident,returnResident} from './economy.js?v=09c0f56a41bdf7e7';
-import {localDate,LEVELS} from './daily.js?v=09c0f56a41bdf7e7';import {SHOP,ROOMS,SLOT_LABELS} from './home-catalog.js?v=09c0f56a41bdf7e7';import {homeScene,shopArt} from './home-art.js?v=09c0f56a41bdf7e7';import {furniture,furnitureArt} from './art.js?v=09c0f56a41bdf7e7';
+import {coinIcon} from './coin-ui.js?v=be6f9a6a74417ecf';
+import {animateHome} from './home-motion.js?v=be6f9a6a74417ecf';
+import {carePanel,hatchMarkup} from './care-ui.js?v=be6f9a6a74417ecf';
+import {balance,openDay,buy,place,removePlacement,LEGACY_SLOTS,TEST_BALANCE,tickResident,tendResident,restResident,welcomeResident,returnResident} from './economy.js?v=be6f9a6a74417ecf';
+import {localDate,LEVELS} from './daily.js?v=be6f9a6a74417ecf';import {SHOP,ROOMS,SLOT_LABELS} from './home-catalog.js?v=be6f9a6a74417ecf';import {homeScene,shopArt} from './home-art.js?v=be6f9a6a74417ecf';import {furniture,furnitureArt} from './art.js?v=be6f9a6a74417ecf';
 const names={easy:'やさしい',standard:'ふつう',hard:'むずかしい'};
 export function mountWorld({store,catalog,onDaily,onClose}){
  const dialog=document.createElement('dialog');dialog.id='world-dialog';dialog.setAttribute('aria-label','ハムのおうちと日替わり');document.body.append(dialog);
