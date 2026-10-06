@@ -1,5 +1,5 @@
-import {rng,solve,validBoard,          } from './core.js?v=c3900dbc6a2c3c88';
-import {analyze} from './deduction.js?v=c3900dbc6a2c3c88';
+import {rng,solve,validBoard,          } from './core.js?v=6b507c7cf90ec9c4';
+import {analyze} from './deduction.js?v=6b507c7cf90ec9c4';
                                                                                                    
                                                                                   
 export function targetFor(stage       ,catalog        ){const index=Math.min(catalog.stages.length-1,Math.max(0,stage-1));return {...catalog.stages[index],endless:stage>catalog.stages.length};}
