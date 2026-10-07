@@ -1,6 +1,6 @@
-import {hamster} from './art.js?v=0755164c70ca2c22';
+import {hamster} from './art.js?v=843e60a0f442c23e';
 const escapeText=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-import {rareBalance} from './economy.js?v=0755164c70ca2c22';
+import {rareBalance} from './economy.js?v=843e60a0f442c23e';
 export function carePanel(world){const c=world.care;if(!c)return '';const ham=c.active?c.hams[c.active]:null,stars=rareBalance(world),ghosts=Object.values(c.hams).filter(h=>h.state==='ghost');
  const feeling=c.enabled===false?'お世話はお好みで。始めるまで時間は進みません。':c.paused?'いまは、おやすみ中。時間は進みません。':ham?.state==='sulking'?'少し、すねているみたい。':ham?'今日も、いつもの場所で。':'お空に、小さな思い出が残りました。';
  return `<section class="care-panel"><div class="care-heading"><strong>${ham?escapeText(ham.name):'お空の思い出'}</strong><span>☆ ${stars} 星のかけら</span></div><p>${feeling}</p>${ham?`<div class="care-actions"><button id="care-feed" ${c.paused?'disabled':''}>ごはん</button><button id="care-clean" ${c.paused?'disabled':''}>おそうじ</button></div><button id="care-pause" class="care-link">${c.enabled===false?'お世話を始める（任意）':c.paused?'おやすみから戻る':'長く休むときは、おやすみへ'}</button>`:`<button id="care-welcome" class="primary wide">新しい子を迎える</button>${ghosts.length?`<label class="sky-select">また会いたい子 <select id="care-ghost">${ghosts.map(h=>`<option value="${h.id}">${escapeText(h.name)}</option>`).join('')}</select></label><button id="care-revive" class="secondary wide" ${stars<3?'disabled':''}>星のかけら3つで、また一緒に</button>`:''}`}

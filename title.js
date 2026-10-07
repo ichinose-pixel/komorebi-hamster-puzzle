@@ -1,11 +1,11 @@
-import {cheekHam} from './character.js?v=0755164c70ca2c22';
-import {coinIcon} from './coin-ui.js?v=0755164c70ca2c22';
-import {localDate} from './daily.js?v=0755164c70ca2c22';
-import {loginStatus,LOGIN_REWARDS} from './login.js?v=0755164c70ca2c22';
-import {receiveLogin,balance} from './economy.js?v=0755164c70ca2c22';
+import {cheekHam} from './character.js?v=843e60a0f442c23e';
+import {coinIcon} from './coin-ui.js?v=843e60a0f442c23e';
+import {localDate} from './daily.js?v=843e60a0f442c23e';
+import {loginStatus,LOGIN_REWARDS} from './login.js?v=843e60a0f442c23e';
+import {receiveLogin,balance} from './economy.js?v=843e60a0f442c23e';
 export function mountTitle({store,ready,onDaily,onHome}){
  const $=id=>document.getElementById(id),dialog=document.createElement('dialog');dialog.id='login-dialog';dialog.setAttribute('aria-labelledby','login-heading');
- dialog.innerHTML=`<div class="login-shell"><header class="login-top"><span>7 DAYS / 小さなおくりもの</span><button id="login-close" class="icon-button close" aria-label="閉じる">×</button></header><div class="login-content"><h2 id="login-heading">きみの分、<br>とっておいたよ。</h2><div class="login-gift"><div class="gift-halo"></div><div class="gift-host">${cheekHam('eat','login-host')}</div><div class="gift-pouch">${coinIcon()}<strong id="login-today-amount"></strong></div><span id="login-today-label"></span></div><ol id="login-days" class="login-days" aria-label="7回のおくりもの"></ol><p class="login-intro">お休みしても、続きから。<br>また会えた日のお楽しみ。</p></div><footer class="login-footer"><p id="login-wallet"></p><button id="login-claim" class="primary wide"></button><p id="login-feedback" role="status" aria-live="polite"></p><p class="login-note">7回受け取ると、また1日目へ。</p></footer></div>`;document.body.append(dialog);
+ dialog.innerHTML=`<div class="login-shell"><header class="login-top"><span>7日分のおくりもの</span><button id="login-close" class="icon-button close" aria-label="閉じる">×</button></header><div class="login-content"><h2 id="login-heading">きみの分、<br>とっておいたよ。</h2><div class="login-gift"><div class="gift-halo"></div><div class="gift-host">${cheekHam('eat','login-host')}</div><div class="gift-pouch">${coinIcon()}<strong id="login-today-amount"></strong></div><span id="login-today-label"></span></div><ol id="login-days" class="login-days" aria-label="7回のおくりもの"></ol><p class="login-intro">お休みしても、続きから。<br>また会えた日のお楽しみ。</p></div><footer class="login-footer"><p id="login-wallet"></p><button id="login-claim" class="primary wide"></button><p id="login-feedback" role="status" aria-live="polite"></p><p class="login-note">7回受け取ると、また1日目へ。</p></footer></div>`;document.body.append(dialog);
  let claiming=false;
  function refresh(){
   const ok=ready(),w=ok?store.read():null,date=localDate(),s=loginStatus(w?.loginClaims,date);$('title-daily').disabled=!ok;$('title-login').disabled=!ok;

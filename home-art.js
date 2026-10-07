@@ -1,4 +1,4 @@
-import {furnitureArt} from './art.js?v=0755164c70ca2c22';import {resident} from './resident.js?v=0755164c70ca2c22';import {SHOP,ROOMS} from './home-catalog.js?v=0755164c70ca2c22';
+import {furnitureArt} from './art.js?v=843e60a0f442c23e';import {resident} from './resident.js?v=843e60a0f442c23e';import {SHOP,ROOMS} from './home-catalog.js?v=843e60a0f442c23e';
 const inner=s=>s.replace(/^<svg[^>]*>|<\/svg>$/g,'');
 const wrap=s=>`<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" fill="none" aria-hidden="true"><g stroke="#795B4B" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">${s}</g></svg>`;
 export function shopArt(id){return wrap({
@@ -8,4 +8,4 @@ export function shopArt(id){return wrap({
  'glow-nest':'<ellipse cx="80" cy="136" rx="71" ry="20" fill="#C9A65E44" stroke="none"/><path d="M21 77 80 18l59 59v66H21Z" fill="#B68B79"/><path d="M11 76 80 7l69 69-12 10L80 29 24 87Z" fill="#D8AC9E"/><path d="M38 135V83q0-34 42-34t42 34v52" fill="#654F66"/><ellipse cx="80" cy="124" rx="40" ry="17" fill="#E6C49C"/><path d="M70 43v25h20V43" fill="#FFDC80"/><circle cx="80" cy="64" r="33" fill="#FFE29233" stroke="none"/><path d="M48 122q31-22 64 0" stroke="#F9E6BD" stroke-width="8"/>',
  'garden-bench':'<path d="M28 102V71h105v31M28 82h105M28 94h105" fill="#B8CFC1" stroke="#749783" stroke-width="6"/><path d="M21 103h119v20H21Z" fill="#D1E0CB"/><path d="M32 123v24m99-24v24" stroke-width="7"/><path d="M14 143 6 105h29l-7 38" fill="#CD9C7D"/><path d="M20 108V51m0 29q-21 0-16-18q20-1 16 18m1-15q21-2 20-21q-23 0-20 21" fill="#779F6C" stroke="#698B5F"/><path d="M130 55q-18-16 0-20q19 4 0 20" fill="#EDC0B0"/>'
  }[id]||'<path d="M15 130V58l65-39 65 39v72Z" fill="#C3DCD1"/><path d="M12 59 80 13l68 46" stroke="#967862" stroke-width="9"/><path d="M60 130V79h41v51" fill="#F8E9C8"/>');}
-export {homeScene} from './home-room.js?v=0755164c70ca2c22';
+export {homeScene} from './home-room.js?v=843e60a0f442c23e';

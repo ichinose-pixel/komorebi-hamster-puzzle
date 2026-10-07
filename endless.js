@@ -1,5 +1,5 @@
-import {candidate,rng,solve,validBoard,          } from './core.js?v=0755164c70ca2c22';
-import {analyze,             } from './deduction.js?v=0755164c70ca2c22';
+import {candidate,rng,solve,validBoard,          } from './core.js?v=843e60a0f442c23e';
+import {analyze,             } from './deduction.js?v=843e60a0f442c23e';
                                                                                                           
 export const ENDLESS_BANDS=[{from:61,min:76,max:91,chain:10},{from:121,min:92,max:111,chain:12},{from:241,min:112,max:135,chain:14},{from:481,min:136,max:175,chain:16}];
 export function endlessBand(stage       ){return ENDLESS_BANDS.filter(b=>b.from<=stage).at(-1)||ENDLESS_BANDS[0];}
