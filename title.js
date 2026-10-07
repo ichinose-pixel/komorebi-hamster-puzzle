@@ -1,10 +1,11 @@
-import {coinIcon} from './coin-ui.js?v=be6f9a6a74417ecf';
-import {localDate} from './daily.js?v=be6f9a6a74417ecf';
-import {loginStatus,LOGIN_REWARDS} from './login.js?v=be6f9a6a74417ecf';
-import {receiveLogin,balance} from './economy.js?v=be6f9a6a74417ecf';
+import {cheekHam} from './character.js?v=0755164c70ca2c22';
+import {coinIcon} from './coin-ui.js?v=0755164c70ca2c22';
+import {localDate} from './daily.js?v=0755164c70ca2c22';
+import {loginStatus,LOGIN_REWARDS} from './login.js?v=0755164c70ca2c22';
+import {receiveLogin,balance} from './economy.js?v=0755164c70ca2c22';
 export function mountTitle({store,ready,onDaily,onHome}){
  const $=id=>document.getElementById(id),dialog=document.createElement('dialog');dialog.id='login-dialog';dialog.setAttribute('aria-labelledby','login-heading');
- dialog.innerHTML='<button id="login-close" class="icon-button close" aria-label="閉じる">×</button><p class="eyebrow">A LITTLE WELCOME</p><h2 id="login-heading">今日も、いらっしゃい。</h2><p class="login-intro">遊びに来た日に、ひとつずつ。<br>お休みしても、続きから。</p><ol id="login-days" class="login-days"></ol><p id="login-wallet"></p><button id="login-claim" class="primary wide"></button><p id="login-feedback" role="status" aria-live="polite"></p><p class="login-note">7回受け取ると、また1日目へ。</p>';document.body.append(dialog);
+ dialog.innerHTML=`<div class="login-shell"><header class="login-top"><span>7 DAYS / 小さなおくりもの</span><button id="login-close" class="icon-button close" aria-label="閉じる">×</button></header><div class="login-content"><h2 id="login-heading">きみの分、<br>とっておいたよ。</h2><div class="login-gift"><div class="gift-halo"></div><div class="gift-host">${cheekHam('eat','login-host')}</div><div class="gift-pouch">${coinIcon()}<strong id="login-today-amount"></strong></div><span id="login-today-label"></span></div><ol id="login-days" class="login-days" aria-label="7回のおくりもの"></ol><p class="login-intro">お休みしても、続きから。<br>また会えた日のお楽しみ。</p></div><footer class="login-footer"><p id="login-wallet"></p><button id="login-claim" class="primary wide"></button><p id="login-feedback" role="status" aria-live="polite"></p><p class="login-note">7回受け取ると、また1日目へ。</p></footer></div>`;document.body.append(dialog);
  let claiming=false;
  function refresh(){
   const ok=ready(),w=ok?store.read():null,date=localDate(),s=loginStatus(w?.loginClaims,date);$('title-daily').disabled=!ok;$('title-login').disabled=!ok;
@@ -15,6 +16,7 @@ export function mountTitle({store,ready,onDaily,onHome}){
   $('login-status').textContent=s.received?'受け取り済み ✓':s.available?'ごほうびを受け取る ↗':'7日分のごほうびを見る ↗';
   const furniture=(w?.ownedLegacy.length||0)+Object.values(w?.purchases||{}).filter(p=>p.kind==='furniture').length;
   const rooms=w?.rooms.length||1;$('house-status').textContent=furniture?`家具 ${furniture} 点 · ${rooms} つのおへや`:'小さなおうちで、待ってるよ';
+  $('login-today-amount').textContent=s.amount;$('login-today-label').textContent=s.received?'今日のおくりもの · 受取済み':s.day+'日目のおくりもの';dialog.classList.toggle('gift-received',s.received);
   $('login-days').innerHTML=LOGIN_REWARDS.map((amount,i)=>`<li class="${i<s.completed?'done':''} ${i===s.day-1?'current':''}"><span>${i+1}日目</span><b>${i<s.completed?'✓':coinIcon()}</b><strong>${amount}<small>コイン</small></strong></li>`).join('');
   $('login-wallet').innerHTML=`<span>もっているコイン</span><strong>${coinIcon()}${w?balance(w):0}</strong>`;
   $('login-claim').disabled=!ok||!s.available||claiming;$('login-claim').textContent=s.received?'今日は受け取り済み':s.available?`${s.amount} コインを受け取る`:'次の受取日までお待ちください';

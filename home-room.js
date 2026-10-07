@@ -1,6 +1,6 @@
-import {ROOMS,SHOP} from './home-catalog.js?v=be6f9a6a74417ecf';
-import {furnitureArt} from './art.js?v=be6f9a6a74417ecf';
-import {resident} from './resident.js?v=be6f9a6a74417ecf';
+import {ROOMS,SHOP} from './home-catalog.js?v=0755164c70ca2c22';
+import {furnitureArt} from './art.js?v=0755164c70ca2c22';
+import {resident} from './resident.js?v=0755164c70ca2c22';
 export const project=(x,y,z=0)=>[350+.86*(x-y),250+.43*(x+y)-z];
 const pt=(x,y,z=0)=>project(x,y,z).map(n=>n.toFixed(2)).join(',');
 const poly=(points,fill,stroke='#91745C',width=1.5)=>`<polygon points="${points.map(p=>pt(...p)).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${width}" stroke-linejoin="round"/>`;
@@ -42,7 +42,7 @@ export function homeScene(world,roomId='main',preview=null){
  walls+=line([0,330,211],[0,0,211],'#AD9475',7)+line([0,0,211],[330,0,211],'#AD9475',7)+line([0,0,4],[330,0,4],'#B59A78',8)+line([0,0,4],[0,330,4],'#B59A78',8);
  // Window and mounted decorations share the exact wall projection.
  walls+=poly([[140,0,73],[238,0,73],[238,0,177],[140,0,177]],'#C4DCCC','#AC9676',5)+line([189,0,76],[189,0,174],'#FCF3DE',4)+line([142,0,125],[237,0,125],'#FCF3DE',4)+box(135,0,110,12,5,70);
- let floor=poly([[0,0,0],[330,0,0],[330,330,0],[0,330,0]],'#D9BE9B')+poly([[0,330,0],[330,330,0],[330,330,-13],[0,330,-13]],'#B39370')+poly([[330,0,0],[330,330,0],[330,330,-13],[330,0,-13]],'#BFA07B');
+ let floor=poly([[0,0,0],[330,0,0],[330,330,0],[0,330,0]],'url(#home-floor-grain)')+poly([[0,330,0],[330,330,0],[330,330,-13],[0,330,-13]],'#B39370')+poly([[330,0,0],[330,330,0],[330,330,-13],[330,0,-13]],'#BFA07B');
  for(let n=30;n<330;n+=30)floor+=line([0,n,1],[330,n,1],'#B79B7855',1);
  for(let row=0;row<11;row++)for(let col=0;col<4;col++){const xx=col*85+(row%2)*42;if(xx<330)floor+=line([xx,row*30,1],[xx,(row+1)*30,1],'#B79B7844',1);}
  let wallItems='',objects=[];
@@ -50,5 +50,5 @@ export function homeScene(world,roomId='main',preview=null){
  // Wall items retain the same ownership identifiers as all floor furniture.
  wallItems=furnishings.filter(f=>['portrait','phone','flags'].includes(f.slot)).map(f=>`<g data-furniture="${f.id}" data-slot="${f.slot}">${wallIcon(f.id,...f.p,f.slot==='flags'?184:150)}</g>`).join('');
  const ghost=resident('ghost').replace(/^<svg[^>]*>|<\/svg>$/g,'');const sky=Object.values(world.care?.hams||{}).filter(h=>h.state==='ghost').slice(-5).map((h,i)=>`<svg class="sky-ghost" x="${40+i*48}" y="22" width="43" height="43" viewBox="0 0 120 120">${ghost}</svg>`).join('');
- return `<svg class="home-scene" viewBox="0 0 700 570" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${room.name}。ハムの様子：${action}" data-action="${action}" data-route='${JSON.stringify(route)}'><ellipse cx="350" cy="501" rx="302" ry="57" fill="#62796712"/>${walls}${wallItems}${floor}<g class="room-objects">${objects.sort((a,b)=>a.depth-b.depth).map(o=>o.markup).join('')}<g class="room-actor" data-phase="arrive"></g></g>${sky}</svg>`;
+ return `<svg class="home-scene" viewBox="0 0 700 570" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${room.name}。ハムの様子：${action}" data-action="${action}" data-route='${JSON.stringify(route)}'><defs><linearGradient id="home-floor-grain" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#E8D2AA"/><stop offset=".6" stop-color="#DABE96"/><stop offset="1" stop-color="#BA926C"/></linearGradient><linearGradient id="home-sunlight" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFF9D5" stop-opacity=".66"/><stop offset="1" stop-color="#FFF4B3" stop-opacity="0"/></linearGradient></defs><ellipse cx="350" cy="501" rx="302" ry="57" fill="#62796712"/>${walls}${wallItems}${floor}${poly([[136,16,2],[238,16,2],[294,242,2],[192,242,2]],'url(#home-sunlight)','none')}<g class="room-objects">${objects.sort((a,b)=>a.depth-b.depth).map(o=>o.markup).join('')}<g class="room-actor" data-phase="arrive"></g></g>${sky}</svg>`;
 }

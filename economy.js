@@ -1,8 +1,8 @@
-import {claimLogin,validateLogin,                } from './login.js?v=be6f9a6a74417ecf';
-import {restore,won,         } from './core.js?v=be6f9a6a74417ecf';
-import {signature,            } from './progression.js?v=be6f9a6a74417ecf';
-import {createDaily,validateBundle,validDate,                           } from './daily.js?v=be6f9a6a74417ecf';
-import {initialCare,advanceCare,careAction,pauseCare,welcomeCare,reviveCare,validateCare,         } from './care.js?v=be6f9a6a74417ecf';
+import {claimLogin,validateLogin,                } from './login.js?v=0755164c70ca2c22';
+import {restore,won,         } from './core.js?v=0755164c70ca2c22';
+import {signature,            } from './progression.js?v=0755164c70ca2c22';
+import {createDaily,validateBundle,validDate,                           } from './daily.js?v=0755164c70ca2c22';
+import {initialCare,advanceCare,careAction,pauseCare,welcomeCare,reviveCare,validateCare,         } from './care.js?v=0755164c70ca2c22';
 export const WORLD_KEY='komorebi-v1-world-v1';
 export const TEST_BALANCE={normal:3,daily:{easy:10,standard:15,hard:20}}         ;
                                                                        

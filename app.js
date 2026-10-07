@@ -1,16 +1,17 @@
-import {mountCoinReward} from './coin-ui.js?v=be6f9a6a74417ecf';
-import {createEndlessQueue} from './endless-queue.js?v=be6f9a6a74417ecf';
-import {mountTitle} from './title.js?v=be6f9a6a74417ecf';
-import {mountWorld} from './world-ui.js?v=be6f9a6a74417ecf';
-import {createWorldStore} from './world-store.js?v=be6f9a6a74417ecf';
-import {completeNormal,completeDaily,saveDailyGame,balance,tickResident} from './economy.js?v=be6f9a6a74417ecf';
-import {tapController} from './interaction.js?v=be6f9a6a74417ecf';
-import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=be6f9a6a74417ecf';
-import {createAudio} from './audio.js?v=be6f9a6a74417ecf';
-import {fresh,mark,undo,won,restore,solve} from './core.js?v=be6f9a6a74417ecf';
-import {analyze} from './deduction.js?v=be6f9a6a74417ecf';
-import {fallbackFor,signature} from './progression.js?v=be6f9a6a74417ecf';
-import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=be6f9a6a74417ecf';
+import {mountFirstExperience} from './first-experience.js?v=0755164c70ca2c22';
+import {mountCoinReward} from './coin-ui.js?v=0755164c70ca2c22';
+import {createEndlessQueue} from './endless-queue.js?v=0755164c70ca2c22';
+import {mountTitle} from './title.js?v=0755164c70ca2c22';
+import {mountWorld} from './world-ui.js?v=0755164c70ca2c22';
+import {createWorldStore} from './world-store.js?v=0755164c70ca2c22';
+import {completeNormal,completeDaily,saveDailyGame,balance,tickResident} from './economy.js?v=0755164c70ca2c22';
+import {tapController} from './interaction.js?v=0755164c70ca2c22';
+import {migrateCollection,roomCount,rewardFor,milestones} from './rewards.js?v=0755164c70ca2c22';
+import {createAudio} from './audio.js?v=0755164c70ca2c22';
+import {fresh,mark,undo,won,restore,solve} from './core.js?v=0755164c70ca2c22';
+import {analyze} from './deduction.js?v=0755164c70ca2c22';
+import {fallbackFor,signature} from './progression.js?v=0755164c70ca2c22';
+import {hamster,roomScene,icon,titleScene,capsule,furniture,furnitureArt,episodes,episodeScene,snackScene,celebrateHam,showCast} from './art.js?v=0755164c70ca2c22';
 const $=id=>document.getElementById(id),lp=new URLSearchParams(location.search).get('mode')==='lp';
 const key=lp?'komorebi-lp-v1':'komorebi-v1',tutorialKey='komorebi-tutorial-v3',collectionKey=key+'-collection-v3';
 const audio=createAudio(key);
@@ -23,7 +24,7 @@ $('sound').onchange=()=>masterSound($('sound').checked);$('title-sound').onchang
 audio.subscribe(status=>{const retry=['blocked','paused'].includes(status),copy={off:'音はオフです',waiting:'最初の操作で音が始まります',starting:'音を開始しています…',playing:'音を再生中',paused:'音が中断されました',blocked:'音を開始できませんでした。再開を押してください',unsupported:'この環境では音声を再生できません'}[status];$('audio-status').textContent=copy;$('title-audio-status').textContent=copy;$('audio-resume').hidden=!retry;$('title-audio-resume').hidden=!retry;});syncAudio();
 
 const palette=['#F4D58F','#A5D9BE','#C9B9E3','#ADD8E5','#F3B7AA','#D4DFA2','#B5C5ED','#EBD0B2'];
-const catalog=await fetch('./catalog.json?v=be6f9a6a74417ecf').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
+const catalog=await fetch('./catalog.json?v=0755164c70ca2c22').then(r=>{if(!r.ok)throw Error('catalog');return r.json();});
 let titleUI=null;
 let activeDaily=null;
 let rewardTimer=null,rewardId='',inGame=lp,input=null,hintPhase=0,hintStep=null,hintContext=[];
@@ -94,7 +95,7 @@ function playTap(i,action='double'){
  g=mark(g,i,value);resetHint();save();render();sound(value===1?'place':value===0?'remove':'mark');if(won(g))complete();else message(value===0?'マークを消しました。空きマスは2回タップでハム、1回で除外。':value===3?'仮置きメモです。タップで消してから、通常操作で置き直せます。':value===2?'ここは除外。もう1回タップ、またはここからなぞると解除。':'いい居場所だね。ぼくの席は広めにね。');
 }
 async function start(stage){if(busy)return;input?.reset();busy=true;message('次のおへやを準備中…');if(g)render();if(stage>60){try{const chosen=await endless.take(stage);g=fresh(chosen.board,chosen.seed,stage);g.hintsUsed=0;g.generatorVersion=3;recent.push(signature(g.board));winFor='';resetHint();save();message('新しいおへや。ひとつずつ、手がかりをつなごう。');endless.prefetch(stage+1);}catch{message('新しい問題を準備できませんでした。少し待って、もう一度お試しください。');$('generation-retry').hidden=false;$('generation-retry').onclick=()=>{$('generation-retry').hidden=true;void start(stage);};}finally{busy=false;render();updateTitle();}return;}const seed=crypto.getRandomValues(new Uint32Array(1))[0];
- const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=be6f9a6a74417ecf',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
+ const result=await new Promise(resolve=>{let finished=false;const finish=x=>{if(finished)return;finished=true;clearTimeout(timer);worker?.terminate();worker=null;resolve(x);};const timer=setTimeout(()=>finish(null),1000);try{worker=new Worker('./worker.js?v=0755164c70ca2c22',{type:'module'});worker.onmessage=e=>finish(e.data.ok?e.data:null);worker.onerror=()=>finish(null);worker.postMessage({seed,stage,catalog,recent});}catch{finish(null);}});
  const chosen=result||fallbackFor(seed,stage,catalog,recent);g=fresh(chosen.board,seed,stage);g.hintsUsed=0;g.generatorVersion=2;recent.push(signature(g.board));if(stage>=60)endless.prefetch(stage+1);busy=false;winFor='';resetHint();save();render();if(tut.done)message(stage>60?'ここからは延長戦。難しさの上限は同じ、新しい盤面です。':'まずは、小さいおへやの候補を見てみよう。');}
 function collectionInfo(){return {count:collection.completed.length,unlocked:roomCount(collection)};}
 function nextLabel(){if(activeDaily)return '日替わりへ';return lp?'本編でつづける':`ステージ${g.stage+1}へ`;}
@@ -126,13 +127,13 @@ async function complete(){
 }
 function showCollection(){if(!lp){input?.reset();void worldUI.open('home');return;}const c=collectionInfo();$('collection-room').innerHTML=roomScene(c.unlocked,true);$('collection-description').textContent=`家具 ${c.unlocked} / 12 ・ クリア ${c.count} 回${c.unlocked===12?'。このお家の家具は完成！ パズルはこの先も続きます。':''}`;$('collection-items').innerHTML=furniture.map((item,i)=>`<div class="collectible ${i<c.unlocked?'unlocked':''}">${i<c.unlocked?furnitureArt(i):'<span class="locked-gift">?</span>'}<strong>${i<c.unlocked?item.name:'おたのしみ'}</strong><small>${i<c.unlocked?item.note:milestones[i]+'回クリアで届く'}</small></div>`).join('');const index=Math.max(0,c.count-1);$('home-story').hidden=true;$('home-story-title').textContent=episodes[index%4].title;$('home-story-art').innerHTML=episodeScene(index);$('home-story-art').setAttribute('aria-label',episodes[index%4].description);$('house-next').textContent=g&&won(g)?nextLabel():'パズルへ';$('collection-dialog').showModal();}
 function showTitle(){input?.reset();save();if(activeDaily){activeDaily=null;g=restore(localStorage.getItem(key)||'');}document.querySelectorAll('dialog[open]').forEach(d=>d.close());inGame=false;audio.setScene(true);$('title-screen').hidden=false;document.querySelector('.app').hidden=true;clearTimeout(lpTimer);lpTimer=null;updateTitle();$('title-play').focus();}
-function hasProgress(){return !!g&&(g.stage>1||g.marks.some(Boolean)||g.history.length>0||tut.done||tut.index>0||tut.ack);}
-function updateTitle(){const progress=hasProgress();$('title-play').disabled=!g||busy;const stage=g?(won(g)?g.stage+1:g.stage):1;const state=g&&!won(g)&&g.marks.some(Boolean)?'続きから遊ぶ':!tut.done?'はじめてのパズル':'次のおへやを探そう';$('title-play').innerHTML='<strong>ステージ '+stage+'</strong><span>'+state+' <b>→</b></span>';$('title-restart').hidden=!progress;$('title-restart').disabled=busy;titleUI?.refresh();}
-function enterGame(){if(!g||busy)return;inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;render();beginLp();if(tut.done&&won(g)){winFor='';complete();}else $('help').focus({preventScroll:true});}
+function hasProgress(){return !!g&&(g.stage>1||g.marks.some(Boolean)||g.history.length>0||tut.done||tut.index>0||tut.ack||tut.coach?.step>0);}
+function updateTitle(){const progress=hasProgress();$('title-play').disabled=!g||busy;const stage=g?(won(g)?g.stage+1:g.stage):1;const state=g&&!won(g)&&g.marks.some(Boolean)?'続きから遊ぶ':!tut.done?(tut.coach?.step>0?'練習のつづき':'はじめてのパズル'):'次のおへやを探そう';$('title-play').innerHTML='<strong>ステージ '+stage+'</strong><span>'+state+' <b>→</b></span>';$('title-restart').hidden=!progress;$('title-restart').disabled=busy;titleUI?.refresh();}
+function enterGame(){if(!g||busy)return;if(!tut.done){firstExperience.open(false);return;}inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;render();beginLp();if(tut.done&&won(g)){winFor='';complete();}else $('help').focus({preventScroll:true});}
 function beginLp(){if(lp&&inGame&&tut.done&&lpTimer===null)lpTimer=setTimeout(()=>{$('cta').hidden=false;document.querySelector('.app').classList.add('lp-offer');},30000);}
 function finishTutorial(){input?.reset();tut.done=true;save();resetHint();render();beginLp();message('準備できました。自分のペースで最初のおへやをつくろう。');if(g&&won(g)){winFor='';complete();}}
 $('tutorial-next').onclick=()=>{input?.reset();if(!tut.ack)return;if(tut.index===5){finishTutorial();return;}tut.index++;tut.ack=false;tut.final=[];tut.excluded=[];errorCell=-1;save();render();};$('skip').onclick=finishTutorial;
-$('replay').onclick=()=>{input?.reset();$('help-dialog').close();inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;tut={version:1,index:0,ack:false,final:[],done:false};save();resetHint();render();};
+$('replay').onclick=()=>{input?.reset();$('help-dialog').close();firstExperience.open(true);};
 $('undo').onclick=()=>{input?.reset();if(busy)return;g=undo(g);winFor='';resetHint();save();render();message('ひとつ前に戻しました。ゆっくり考えて大丈夫。');};
 function hintRender(){
  if(!hintStep)return;$('hint-panel').hidden=false;const cells=hintStep.place!==undefined?[hintStep.place]:hintStep.remove;premise=hintStep.premise;hinted=cells;
@@ -164,6 +165,7 @@ if(lp){$('mode-link').href='./';$('mode-link').textContent='通常モードへ';
 const worldUI=mountWorld({store:worldStore,catalog,onDaily:async(p,replay)=>{if(!tut.done){enterGame();message('まずは遊び方を覚えよう。日替わりはあとで選べます。');return;}save();activeDaily={id:p.id,date:p.date,level:p.level,slot:p.slot};g=replay?fresh(p.game.board,p.seed,p.game.stage):JSON.parse(JSON.stringify(p.game));g.hintsUsed??=0;winFor='';resetHint();enterGame();},onClose:()=>titleUI?.refresh()});
 titleUI=mountTitle({store:worldStore,ready:()=>worldReady,onDaily:()=>void worldUI.open('daily'),onHome:showCollection});if(lp)$('title-cards').hidden=true;
 const retryButton=document.createElement('button');retryButton.id='generation-retry';retryButton.className='secondary wide';retryButton.textContent='新しい問題をもう一度準備する';retryButton.hidden=true;$('status').parentElement.after(retryButton);if(g){try{endless.rememberCurrent(g,recent);}catch{storageOk=false;}if(g.stage>=60)endless.prefetch(g.stage+1);}
+const firstExperience=mountFirstExperience({read:()=>tut.coach,onProgress:snapshot=>{tut.coach=snapshot;save();},onComplete:replay=>{if(replay)return;tut.done=true;save();resetHint();enterGame();updateTitle();}});
 $('title-art').innerHTML=titleScene();$('title-play').onclick=()=>g&&won(g)&&tut.done?void advanceStage():enterGame();$('title-home').onclick=showTitle;$('title-help').onclick=()=>$('help-dialog').showModal();updateTitle();if(lp){$('title-screen').hidden=true;document.querySelector('.app').hidden=false;}
 
 let storyBeat=0;
@@ -173,7 +175,7 @@ $('open-story').onclick=showStory;$('story-next').onclick=()=>{if(storyBeat===2)
 
 $('story-skip').onclick=()=>{if(g&&won(g))advanceStage();else{$('story-dialog').close();showCollection();}};
 $('title-restart').onclick=()=>{if(!busy)$('restart-dialog').showModal();};$('restart-cancel').onclick=()=>$('restart-dialog').close();
-$('restart-confirm').onclick=async()=>{if(busy)return;activeDaily=null;$('restart-dialog').close();document.querySelectorAll('dialog[open]').forEach(d=>d.close());tut={version:1,index:0,ack:false,final:[],done:false};recent=[];g=null;winFor='';document.querySelector('input[name=mode][value="1"]').checked=true;inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(1);updateTitle();};
+$('restart-confirm').onclick=async()=>{if(busy)return;activeDaily=null;$('restart-dialog').close();document.querySelectorAll('dialog[open]').forEach(d=>d.close());tut={version:1,index:0,ack:false,final:[],done:false};recent=[];g=null;winFor='';document.querySelector('input[name=mode][value="1"]').checked=true;inGame=true;$('title-screen').hidden=true;document.querySelector('.app').hidden=false;await start(1);updateTitle();firstExperience.open(false);};
 
 let gesture=null,boardClickPending=false;
 // A board pointerup may open a dialog. Consume its following compatibility click
